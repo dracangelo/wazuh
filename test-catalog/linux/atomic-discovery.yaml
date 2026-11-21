@@ -1,0 +1,45 @@
+# Atomic Red Team tests adapted for this lab (unique resources, cleanup, no real user data).
+# Discovery tests are negative against the recon-burst rule: a single command must stay quiet.
+tests:
+  - id: LIN-ATOMIC-T1033-001
+    name: Atomic - current user discovery stays below recon threshold
+    technique: T1033
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    simulation: {test: 1}
+    negative: true
+    expected: {rule_ids: ["100409"], timeout_seconds: 45}
+
+  - id: LIN-ATOMIC-T1082-001
+    name: Atomic - system information discovery stays below recon threshold
+    technique: T1082
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    simulation: {test: 1}
+    negative: true
+    expected: {rule_ids: ["100409"], timeout_seconds: 45}
+
+  - id: LIN-ATOMIC-T1070-003
+    name: Atomic - command-history removal in a temp directory
+    technique: T1070.003
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    simulation: {test: 1}
+    expected: {rule_ids: ["100407"], timeout_seconds: 60}
+
+  - id: LIN-ATOMIC-T1548-001
+    name: Atomic - setuid bit on a temporary file
+    technique: T1548.001
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    risk: high                # creates a setuid file in /tmp; removed by the atomic cleanup
+    simulation: {test: 1}
+    expected: {rule_ids: ["100320", "100321", "100421"], timeout_seconds: 120}

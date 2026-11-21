@@ -27,6 +27,9 @@ case "$S" in
   recon_burst)     for c in whoami id "uname -a" hostname "ip a" "ss -tan" w who "last -n 3" id; do $c >/dev/null 2>&1 || true; done ;;
   recon_few)       whoami >/dev/null; id >/dev/null; hostname >/dev/null ;;
   suid_chmod)      cp "$(command -v true)" "$W/suid_test" && chmod u+s "$W/suid_test" ;;
+  base64_decode)   printf 'ZHZfdGVzdA==' | base64 -d >/dev/null ;;
+  chattr_test)     F="$W/chattr_test"; : >"$F"; chattr +i "$F" || exit 3; chattr -i "$F" ;;
+  archive_stage)   tar -czf "$W/stage.tgz" /etc/hostname 2>/dev/null || exit 3 ;;
   shadow_read)     sudo -n cat /etc/shadow >/dev/null ;;
   log_delete)      L="/var/log/dv_${SUF}.log"
                    dv_sudo_file "$L" "# dv test ${SUF}" 0644 || exit 1

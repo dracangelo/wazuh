@@ -92,6 +92,33 @@
     <group>execution,attack_tooling,</group>
   </rule>
 
+  <rule id="100411" level="7">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(base64|base32|xxd)$</field>
+    <regex type="pcre2">a\d+="(-d|--decode|-r)"</regex>
+    <description>Encoded content decoded on the command line (possible payload staging).</description>
+    <mitre><id>T1140</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100412" level="9">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/chattr$</field>
+    <regex type="pcre2">a\d+="[+-][a-zA-Z]+"</regex>
+    <description>File attribute changed with chattr (immutable/append-only tampering).</description>
+    <mitre><id>T1222.002</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100413" level="7">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(tar|zip|7z|rar)$</field>
+    <regex type="pcre2">a\d+="/(etc|root|home|var/lib|opt)(/|")</regex>
+    <description>Archive utility staging sensitive directories (possible data collection).</description>
+    <mitre><id>T1560.001</id></mitre>
+    <group>collection,</group>
+  </rule>
+
   <!-- Syscall-level rules (one audit key each) -->
   <rule id="100420" level="12">
     <decoded_as>auditd</decoded_as>

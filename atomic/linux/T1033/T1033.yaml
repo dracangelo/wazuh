@@ -1,0 +1,16 @@
+attack_technique: T1033
+display_name: "System Owner/User Discovery"
+atomic_tests:
+  - name: Discover the current user on Linux
+    auto_generated_guid: 6f3a2c1e-8b4d-4a7e-9c2f-0d1e2a3b4c5d
+    description: >-
+      Runs read-only identity commands. A single discovery command stays below the recon-burst
+      threshold (rule 100409); the catalog test asserts that it does not alert.
+    supported_platforms: [linux]
+    executor:
+      name: bash
+      elevation_required: false
+      command: |
+        set -u
+        whoami
+        id

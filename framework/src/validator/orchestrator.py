@@ -80,10 +80,14 @@ class Orchestrator:
         alerts: list = []
         while True:
             try:
-                alerts = self.collector.fetch(target.agent_name, execution.started_at - skew,
-                                              datetime.now(timezone.utc) + skew)
+                batch = self.collector.fetch(target.agent_name, execution.started_at - skew,
+                                             datetime.now(timezone.utc) + skew)
             except Exception as exc:
                 return self._error(test, f"alert collection failed: {exc}", execution)
+            if batch.truncated:
+                # A capped window may be missing the alert that was never evaluated: never score it.
+                return self._error(test, f"alert collection truncated: {batch.reason}", execution)
+            alerts = batch.alerts
             # positives stop as soon as they match; negatives must stay quiet for the whole window
             if (not test.negative and satisfied(alerts, test.expected)) or time.monotonic() >= deadline:
                 break

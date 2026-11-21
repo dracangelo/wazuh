@@ -10,6 +10,8 @@ wazuh:
     indexer_user: ${WAZUH_INDEXER_USER}
     indexer_password: ${WAZUH_INDEXER_PASSWORD}
     index_pattern: "wazuh-alerts-4.x-*"
+    page_size: 1000            # documents per search_after page
+    max_alerts: 5000           # hard cap per collection window; hitting it is a collection ERROR, never FN
     file_path: /var/ossec/logs/alerts/alerts.json   # used when source: file
 
 # Central lab safety gate (see framework/src/validator/safety.py).

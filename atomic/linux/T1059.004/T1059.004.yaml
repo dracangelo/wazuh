@@ -1,0 +1,15 @@
+attack_technique: T1059.004
+display_name: "Command and Scripting Interpreter: Unix Shell"
+atomic_tests:
+  - name: Execute a command through the Unix shell
+    auto_generated_guid: 9e5b6c71-0d42-4a8f-b3c7-5e6d7f809a1b
+    description: >-
+      Runs a harmless echo through /bin/sh so the shell execution path is exercised. There is no
+      cleanup because the command does not create resources.
+    supported_platforms: [linux]
+    executor:
+      name: bash
+      elevation_required: false
+      command: |
+        set -u
+        /bin/sh -c 'echo dv_atomic_shell_#{dv_exec_id}'

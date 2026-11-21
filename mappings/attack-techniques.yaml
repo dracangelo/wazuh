@@ -59,3 +59,15 @@ techniques:
   T1505.003:
     name: 'Server Software Component: Web Shell'
     tactic: persistence
+  T1033:
+    name: System Owner/User Discovery
+    tactic: discovery
+  T1140:
+    name: Deobfuscate/Decode Files or Information
+    tactic: defense-evasion
+  T1222.002:
+    name: 'File and Directory Permissions Modification: Linux and Mac File and Directory Permissions Modification'
+    tactic: defense-evasion
+  T1560.001:
+    name: 'Archive Collected Data: Archive via Utility'
+    tactic: collection

@@ -32,7 +32,8 @@ dv coverage                        # writes mappings/coverage-matrix.csv
 ## Layout notes
 - `test-catalog/**.yaml` - test definitions (one test or a `tests:` list). Schema: see `models.TestCase`.
 - `atomic/<platform>/<Txxxx>/<Txxxx>.yaml` - Atomic Red Team definitions; copy the ones you use from
-  redcanaryco/atomic-red-team. A benign T1136.001 sample is included.
+  redcanaryco/atomic-red-team. Benign Linux samples for T1033, T1070.003, T1082, T1136.001 and
+  T1548.001 are included, with unique names and cleanup.
 - `rules/wazuh/linux/` - custom Linux rules, IDs 100100-100699 (see its README for deploy steps,
   auditd rules, and agent config). `rules/wazuh/examples/` holds non-deployed reference XML.
 - `custom-simulations/` - our scripts. `lib/dv_safety.sh` gives every run unique resource names and
@@ -44,6 +45,14 @@ dv coverage                        # writes mappings/coverage-matrix.csv
 ## Verdicts
 TP attack detected · FN **coverage gap** · TN benign stayed quiet · FP noisy rule · ERROR simulation or
 collection failed (never counted as a pass).
+
+## Alert collection
+
+The indexer collector pages through a window with `search_after` (`alerts.page_size`, default 1000)
+and stops at `alerts.max_alerts` (default 5000), with `id` as the tie-breaker for equal timestamps.
+When a window reaches the cap, the collector reports it as truncated and the test is recorded as
+`ERROR` - an incomplete window must never be scored as `FN`, `TN` or `FP`. The file collector applies
+the same cap. Raise `max_alerts` for noisy targets; do not lower it to make a run pass.
 
 ## Safety model
 

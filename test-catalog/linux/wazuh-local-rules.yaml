@@ -424,3 +424,54 @@ tests:
     rule_ids:
     - '100604'
     timeout_seconds: 60
+- id: LIN-R100411
+  name: base64 decode on the command line
+  technique: T1140
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - base64_decode
+  expected:
+    rule_ids:
+    - '100411'
+    timeout_seconds: 60
+- id: LIN-R100412
+  name: chattr +i on a file
+  technique: T1222.002
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - chattr_test
+  expected:
+    rule_ids:
+    - '100412'
+    timeout_seconds: 60
+- id: LIN-R100413
+  name: tar archive of a sensitive directory
+  technique: T1560.001
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - archive_stage
+  expected:
+    rule_ids:
+    - '100413'
+    timeout_seconds: 60

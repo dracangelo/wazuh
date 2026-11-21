@@ -73,6 +73,18 @@ def test_auditd_arg_rules():
     assert hit(100502, "type=MAC_STATUS msg=audit(1): enforcing=0 old_enforcing=1")
 
 
+def test_payload_staging_rules():
+    assert re.search(R[100411]["fields"]["audit.exe"], "/usr/bin/base64")
+    assert not re.search(R[100411]["fields"]["audit.exe"], "/usr/bin/env")
+    assert hit(100411, 'a0="-d"') and hit(100411, 'a0="--decode"')
+    assert not hit(100411, 'a0="-w"')
+    assert re.search(R[100412]["fields"]["audit.exe"], "/usr/bin/chattr")
+    assert hit(100412, 'a0="+i"') and not hit(100412, 'a0="/tmp/x"')
+    assert re.search(R[100413]["fields"]["audit.exe"], "/usr/bin/tar")
+    assert hit(100413, 'a0="-czf" a1="/tmp/x.tgz" a2="/etc"')
+    assert not hit(100413, 'a0="-czf" a1="/tmp/x.tgz" a2="/tmp/data"')
+
+
 def test_web_rules():
     assert hit(100600, 'GET / HTTP/1.1" 200 "sqlmap/1.7.2#stable"') and not hit(100600, 'GET / "Mozilla/5.0"')
     assert hit(100601, 'User-Agent: () { :; }; echo x') and hit(100601, "ua=%28%29%20%7B")
