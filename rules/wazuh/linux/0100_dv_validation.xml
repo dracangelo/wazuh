@@ -1,0 +1,84 @@
+<!-- Pipeline health markers (rule IDs 100100-100199).
+     Deploy all 0*_dv_*.xml files to /var/ossec/etc/rules/ on the manager, then restart wazuh-manager.
+     Rule IDs 100100-100699 are reserved for this project.
+
+     Each marker proves ONE telemetry path end to end, independent of any attack logic:
+       100100-100103  FIM (syscheck) path: add, modify, delete, and full lifecycle correlation
+       100110         syslog path: logger canary line
+       100111         auditd path: write to the watched marker file (validates the auditd decoder
+                      and event grouping that every rule in 0400_dv_execution_auditd.xml relies on)
+       100112         web access-log path: request for /dv_canary
+     Run them first using the dv run command with the smoke tag and strict mode.
+     If a marker fails, results from the rules that share its path are not trustworthy.
+
+     Marker levels are kept at or above 5 so alerts are stored (default log_alert_level is 3) while
+     staying well below paging thresholds. -->
+
+<group name="local,syscheck,dv_validation,dv_marker,dv_marker_fim,">
+
+  <rule id="100100" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(^|/)dv_fim_test\.txt$</field>
+    <description>Marker: dv_fim_test.txt created in a monitored directory.</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+  <rule id="100101" level="10">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(^|/)dv_fim_test\.txt$</field>
+    <description>Marker: dv_fim_test.txt modified in a monitored directory.</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+  <rule id="100102" level="10">
+    <if_sid>553</if_sid>
+    <field name="file" type="pcre2">(^|/)dv_fim_test\.txt$</field>
+    <description>Marker: dv_fim_test.txt deleted from a monitored directory.</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+  <!-- Fires when the delete follows a modify of the same file within 60s, proving FIM delivered
+       ordered events for one file rather than three unrelated ones. -->
+  <rule id="100103" level="11" timeframe="60">
+    <if_sid>100102</if_sid>
+    <if_matched_sid>100101</if_matched_sid>
+    <same_field>file</same_field>
+    <description>Marker: dv_fim_test.txt full lifecycle observed (create, modify, delete).</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+</group>
+
+<group name="local,syslog,dv_validation,dv_marker,dv_marker_syslog,">
+
+  <!-- Generate with: logger -p auth.notice -t dv_canary "DV_CANARY id=$(date +%s)"
+       The auth facility lands in auth.log (Debian) or secure (RHEL), both collected by the agent snippet. -->
+  <rule id="100110" level="5">
+    <program_name>^dv_canary$</program_name>
+    <regex type="pcre2">DV_CANARY id=[A-Za-z0-9_-]+</regex>
+    <description>Marker: syslog canary line received from agent.</description>
+  </rule>
+
+</group>
+
+<group name="local,auditd,dv_validation,dv_marker,dv_marker_auditd,">
+
+  <!-- Needs the watch from agent-config/audit/99-dv.rules and the file to exist at load time:
+       sudo touch /etc/dv_audit_marker. Generate with: date | sudo tee -a /etc/dv_audit_marker -->
+  <rule id="100111" level="5">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_marker$</field>
+    <description>Marker: auditd event with key dv_marker received from agent.</description>
+  </rule>
+
+</group>
+
+<group name="local,web,dv_validation,dv_marker,dv_marker_web,">
+
+  <rule id="100112" level="5">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">"(GET|HEAD|POST) /dv_canary([?/]\S*)?\s</regex>
+    <description>Marker: web access-log canary request (/dv_canary) received from agent.</description>
+  </rule>
+
+</group>

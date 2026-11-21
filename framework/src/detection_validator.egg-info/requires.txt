@@ -1,0 +1,9 @@
+pyyaml>=6
+requests>=2.31
+
+[dev]
+pytest>=8
+ruff>=0.5
+
+[pdf]
+reportlab>=4

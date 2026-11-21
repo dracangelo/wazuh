@@ -1,0 +1,20 @@
+name: validate
+on: [push, pull_request]
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: framework}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[dev]"
+      - run: ruff check src ../tests
+      - run: dv lint            # catalog schema + duplicate ids
+      - run: dv rules-check     # Wazuh rule XML lint (ids, levels, regexes, parents)
+      - run: pytest             # unit + integration (no live Wazuh needed)
+      - run: bash -n ../custom-simulations/*/*.sh   # shell syntax check
+  # Live validation needs a lab Wazuh + agents; run it on a self-hosted runner:
+  # live:
+  #   runs-on: [self-hosted, detection-lab]
+  #   steps: [... dv doctor, dv regress --baseline <id> ...]

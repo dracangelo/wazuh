@@ -1,0 +1,48 @@
+<!-- Merge into /var/ossec/etc/ossec.conf on each Linux agent (or push via a Wazuh agent group's agent.conf). -->
+<ossec_config>
+
+  <syscheck>
+    <!-- Identity, privilege, persistence, and boot files: realtime for second-level latency -->
+    <directories check_all="yes" realtime="yes">/etc/passwd,/etc/shadow,/etc/group,/etc/gshadow,/etc/sudoers,/etc/sudoers.d,/etc/ssh,/etc/pam.d,/etc/crontab,/etc/cron.d,/etc/ld.so.preload,/etc/ld.so.conf.d,/etc/hosts,/etc/nsswitch.conf,/etc/profile,/etc/profile.d,/etc/init.d,/etc/rc.local,/etc/systemd/system,/usr/lib/systemd/system,/var/spool/cron</directories>
+
+    <!-- User startup files and SSH keys. /home recursion can exhaust inotify watches on big hosts. -->
+    <directories check_all="yes" realtime="yes">/root,/home</directories>
+
+    <!-- Executable drops (rule 100319 alerts only on files with an execute bit) -->
+    <directories check_all="yes" realtime="yes">/tmp,/dev/shm,/var/tmp</directories>
+
+    <!-- Web roots (rule 100324) -->
+    <directories check_all="yes" realtime="yes">/var/www</directories>
+
+    <!-- Kernel modules: static, so scheduled scans are enough (rule 100323) -->
+    <directories check_all="yes">/lib/modules,/usr/lib/modules</directories>
+
+    <!-- Reduce noise from files that change constantly -->
+    <ignore>/root/.cache</ignore>
+    <ignore type="sregex">/\.cache/|/\.local/share/|/\.mozilla/|/\.config/(google-chrome|chromium)/</ignore>
+    <ignore>/etc/mtab</ignore>
+  </syscheck>
+
+  <!-- auditd events, grouped per event id by Wazuh -->
+  <localfile>
+    <log_format>audit</log_format>
+    <location>/var/log/audit/audit.log</location>
+  </localfile>
+
+  <!-- Debian/Ubuntu: use auth.log and syslog. RHEL family: use /var/log/secure and /var/log/messages. -->
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/auth.log</location>
+  </localfile>
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/syslog</location>
+  </localfile>
+
+  <!-- Web access log used by 0600_dv_web.xml -->
+  <localfile>
+    <log_format>apache</log_format>
+    <location>/var/log/apache2/access.log</location>
+  </localfile>
+
+</ossec_config>

@@ -1,0 +1,39 @@
+## Audit rules backing rules/wazuh/linux/0400_dv_execution_auditd.xml
+## Install: cp 99-dv.rules /etc/audit/rules.d/ && augenrules --load && auditctl -l
+## Skip the b32 lines on 64-bit-only systems. auid 4294967295 means "no login session",
+## so daemons and cron are excluded, which keeps volume manageable.
+
+# dv_exec: every execve from a login session (feeds rules 100400-100410)
+-a always,exit -F arch=b64 -S execve -F auid!=4294967295 -k dv_exec
+-a always,exit -F arch=b32 -S execve -F auid!=4294967295 -k dv_exec
+
+# dv_shell_net: shells making outbound connections (100420). Both merged-usr and classic paths.
+-a always,exit -F arch=b64 -S connect -F exe=/usr/bin/bash -F auid!=4294967295 -k dv_shell_net
+-a always,exit -F arch=b64 -S connect -F exe=/bin/bash -F auid!=4294967295 -k dv_shell_net
+-a always,exit -F arch=b64 -S connect -F exe=/usr/bin/dash -F auid!=4294967295 -k dv_shell_net
+-a always,exit -F arch=b64 -S connect -F exe=/bin/dash -F auid!=4294967295 -k dv_shell_net
+-a always,exit -F arch=b64 -S connect -F exe=/usr/bin/zsh -F auid!=4294967295 -k dv_shell_net
+
+# dv_setuid: chmod with the setuid bit (04000) (100421)
+-a always,exit -F arch=b64 -S chmod,fchmod -F a1&04000 -F auid!=4294967295 -k dv_setuid
+-a always,exit -F arch=b64 -S fchmodat -F a2&04000 -F auid!=4294967295 -k dv_setuid
+
+# dv_kmod: module load/unload (100422)
+-a always,exit -F arch=b64 -S init_module,finit_module,delete_module -F auid!=4294967295 -k dv_kmod
+
+# dv_ptrace: PTRACE_POKETEXT (4) and PTRACE_ATTACH (16) (100423)
+-a always,exit -F arch=b64 -S ptrace -F a0=0x4 -F auid!=4294967295 -k dv_ptrace
+-a always,exit -F arch=b64 -S ptrace -F a0=0x10 -F auid!=4294967295 -k dv_ptrace
+
+# dv_memfd: fileless execution primitive (100424)
+-a always,exit -F arch=b64 -S memfd_create -F auid!=4294967295 -k dv_memfd
+
+# dv_shadow_read: opens of /etc/shadow (100425). Wazuh rule excludes the normal readers.
+-a always,exit -F arch=b64 -S open,openat -F path=/etc/shadow -F auid!=4294967295 -k dv_shadow_read
+
+# dv_log_delete: unlink/rename under /var/log by login sessions (100426)
+-a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat -F dir=/var/log -F auid!=4294967295 -k dv_log_delete
+
+# dv_marker: pipeline health marker (rule 100111). The file must exist when rules load:
+#   sudo touch /etc/dv_audit_marker
+-w /etc/dv_audit_marker -p wa -k dv_marker

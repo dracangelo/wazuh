@@ -1,0 +1,1 @@
+{"id":"1","timestamp":"2026-01-01T10:00:20.000+0000","rule":{"id":"5712","level":10,"description":"sshd: brute force","groups":["syslog","sshd","authentication_failures"],"mitre":{"id":["T1110"]}},"agent":{"name":"lab-linux-01"}}

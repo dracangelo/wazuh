@@ -1,0 +1,49 @@
+<!-- Authentication and account changes (Security log). -->
+<group name="local,windows,authentication,dv_validation,">
+
+  <rule id="100750" level="10" frequency="8" timeframe="120">
+    <if_matched_sid>100711</if_matched_sid>
+    <same_field>win.eventdata.ipAddress</same_field>
+    <description>Windows: Multiple failed logons from the same source IP.</description>
+    <mitre><id>T1110.001</id></mitre>
+    <group>authentication_failures,</group>
+  </rule>
+
+  <rule id="100751" level="14" timeframe="600">
+    <if_sid>100710</if_sid>
+    <if_matched_sid>100750</if_matched_sid>
+    <same_field>win.eventdata.ipAddress</same_field>
+    <description>Windows: Successful logon after repeated failures from the same source IP.</description>
+    <mitre><id>T1110.001</id><id>T1078</id></mitre>
+    <group>authentication_success,brute_force_success,</group>
+  </rule>
+
+  <rule id="100752" level="8">
+    <if_sid>100710</if_sid>
+    <field name="win.eventdata.logonType">^10$</field>
+    <time>9 pm - 6 am</time>
+    <description>Windows: RDP logon outside business hours (21:00-06:00).</description>
+    <mitre><id>T1021.001</id><id>T1078</id></mitre>
+    <group>authentication_success,off_hours,</group>
+  </rule>
+
+  <rule id="100753" level="8">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Security-Auditing$</field>
+    <field name="win.system.eventID">^4720$</field>
+    <description>Windows: Local or domain user account created.</description>
+    <mitre><id>T1136.001</id></mitre>
+    <group>account_changed,</group>
+  </rule>
+
+  <rule id="100754" level="12">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Security-Auditing$</field>
+    <field name="win.system.eventID">^(4728|4732|4756)$</field>
+    <field name="win.eventdata.targetUserName" type="pcre2">(?i)^(administrators|remote desktop users|backup operators|account operators|server operators|dnsadmins|domain admins|enterprise admins|schema admins)$</field>
+    <description>Windows: Member added to a privileged group.</description>
+    <mitre><id>T1098</id><id>T1078.003</id></mitre>
+    <group>account_changed,privilege_escalation,</group>
+  </rule>
+
+</group>

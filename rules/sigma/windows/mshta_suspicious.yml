@@ -1,0 +1,15 @@
+title: Suspicious MSHTA Execution
+id: c5d6e7f8-9a0b-1c2d-3e4f-5a6b7c8d9e0f
+status: experimental
+logsource: {category: process_creation, product: windows}
+detection:
+  selection:
+    Image|endswith: '\mshta.exe'
+    CommandLine|contains:
+      - 'http'
+      - 'javascript:'
+      - 'vbscript:'
+      - '.hta'
+  condition: selection
+level: high
+tags: [attack.defense_evasion, attack.execution, attack.t1218.005]

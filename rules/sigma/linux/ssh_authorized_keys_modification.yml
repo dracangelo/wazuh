@@ -1,0 +1,16 @@
+title: SSH Authorized Keys File Modified
+id: 4d7b1e93-6c2a-4f8e-a15d-0b9e3c7a2f61
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/echo'
+      - '/cat'
+      - '/tee'
+      - '/cp'
+      - '/mv'
+    CommandLine|contains: 'authorized_keys'
+  condition: selection
+level: high
+tags: [attack.persistence, attack.t1098.004]

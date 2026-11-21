@@ -1,0 +1,53 @@
+<!-- Web attack signatures on access logs. Parent 31100 = "Access log messages grouped".
+     These are additive to stock web rules and carry the dv_validation group for testing. -->
+<group name="local,web,attack,dv_validation,">
+
+  <rule id="100600" level="8">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(sqlmap|nikto|wpscan|gobuster|dirbuster|ffuf|feroxbuster|nuclei|acunetix|masscan|zgrab|nmap scripting engine)</regex>
+    <description>Web: Known scanner user agent.</description>
+    <mitre><id>T1595.002</id></mitre>
+    <group>web_scan,</group>
+  </rule>
+
+  <rule id="100601" level="12">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(\(\)\s*\{[^}]*\}\s*;|%28%29%20%7B|%28%29\+%7B)</regex>
+    <description>Web: Shellshock (CVE-2014-6271) signature in request.</description>
+    <mitre><id>T1190</id></mitre>
+    <group>shellshock,</group>
+  </rule>
+
+  <rule id="100602" level="10">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)((\.\./|%2e%2e%2f|%252e%252e%252f|\.\.%2f){2,}|(\.\./|%2e%2e%2f)+(etc/passwd|etc/shadow|proc/self|windows/win\.ini))</regex>
+    <description>Web: Path traversal / local file inclusion attempt.</description>
+    <mitre><id>T1190</id></mitre>
+    <group>path_traversal,</group>
+  </rule>
+
+  <rule id="100603" level="12">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)\.(php[0-9]?|phtml|jsp|aspx?)\?(cmd|exec|command|c|shell)=(whoami|id|ls|cat|uname|pwd|wget|curl|bash|sh|nc)\b</regex>
+    <description>Web: Request resembling web shell command execution.</description>
+    <mitre><id>T1505.003</id></mitre>
+    <group>webshell,</group>
+  </rule>
+
+  <rule id="100604" level="13">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(\$\{\s*jndi\s*:|%24%7b\s*jndi|\$%7bjndi)</regex>
+    <description>Web: Log4Shell (CVE-2021-44228) JNDI lookup string in request.</description>
+    <mitre><id>T1190</id></mitre>
+    <group>log4shell,</group>
+  </rule>
+
+  <rule id="100605" level="10">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(union(\s|\+|%20|/\*.*?\*/)+(all(\s|\+|%20))?select|sleep\(\d+\)|benchmark\(\d+|(\s|\+|%20)or(\s|\+|%20)+\d+=\d+|information_schema)</regex>
+    <description>Web: SQL injection pattern in request.</description>
+    <mitre><id>T1190</id></mitre>
+    <group>sql_injection,</group>
+  </rule>
+
+</group>

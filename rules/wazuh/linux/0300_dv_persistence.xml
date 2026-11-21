@@ -1,0 +1,145 @@
+<!-- Persistence and critical-file integrity. Syslog-based rules first, then FIM (syscheck) rules.
+     FIM rules need the directories in agent-config/ossec_agent_snippet.xml to be monitored
+     (realtime="yes" for second-level latency). -->
+<group name="local,persistence,dv_validation,">
+
+  <rule id="100300" level="15">
+    <if_sid>5902</if_sid>
+    <match>UID=0,</match>
+    <description>useradd: New account created with UID 0 (hidden root account).</description>
+    <mitre><id>T1136.001</id><id>T1098</id></mitre>
+  </rule>
+
+  <rule id="100301" level="12">
+    <regex type="pcre2">add '[^']+' to (shadow )?group '(sudo|wheel|root|adm|admin|docker|lxd|disk|shadow)'|user \S+ added by \S+ to group (sudo|wheel|root|adm|admin|docker|lxd|disk|shadow)\b</regex>
+    <description>Account added to a privileged local group.</description>
+    <mitre><id>T1098</id><id>T1548.003</id></mitre>
+    <group>account_changed,privilege_escalation,</group>
+  </rule>
+
+  <rule id="100302" level="8">
+    <program_name>^crontab$</program_name>
+    <regex type="pcre2">\(\S+\) (REPLACE|DELETE) \(\S+\)</regex>
+    <description>crontab: User crontab replaced or deleted.</description>
+    <mitre><id>T1053.003</id></mitre>
+    <group>cron,</group>
+  </rule>
+
+  <rule id="100303" level="10">
+    <regex type="pcre2">pam_unix\((passwd|chpasswd):chauthtok\): password changed for root\b</regex>
+    <description>Root password changed.</description>
+    <mitre><id>T1098</id></mitre>
+    <group>account_changed,</group>
+  </rule>
+
+</group>
+
+<group name="local,syscheck,persistence,dv_validation,">
+
+  <rule id="100310" level="12">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/(passwd-?|shadow-?|group-?|gshadow-?)$</field>
+    <description>FIM: Local account database changed.</description>
+    <mitre><id>T1098</id><id>T1136.001</id></mitre>
+  </rule>
+
+  <rule id="100311" level="13">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/sudoers(\.d/.*)?$</field>
+    <description>FIM: sudoers configuration changed.</description>
+    <mitre><id>T1548.003</id></mitre>
+  </rule>
+
+  <rule id="100312" level="10">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/ssh/sshd_config(\.d/.*)?$</field>
+    <description>FIM: sshd server configuration changed.</description>
+    <mitre><id>T1021.004</id></mitre>
+  </rule>
+
+  <rule id="100313" level="12">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">(^|/)\.ssh/authorized_keys2?$</field>
+    <description>FIM: SSH authorized_keys file changed.</description>
+    <mitre><id>T1098.004</id></mitre>
+  </rule>
+
+  <rule id="100314" level="10">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/(crontab|anacrontab|cron\.(d|hourly|daily|weekly|monthly)/.*)$|^/var/spool/cron(/crontabs)?/.+</field>
+    <description>FIM: Scheduled task (cron) definition changed.</description>
+    <mitre><id>T1053.003</id></mitre>
+  </rule>
+
+  <rule id="100315" level="10">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/(etc|usr/lib|lib)/systemd/(system|user)/.+\.(service|timer|socket|path)$|/\.config/systemd/user/.+\.(service|timer)$</field>
+    <description>FIM: systemd unit created or modified.</description>
+    <mitre><id>T1543.002</id></mitre>
+  </rule>
+
+  <rule id="100316" level="14">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/ld\.so\.(preload|conf)(\.d/.*)?$</field>
+    <description>FIM: Dynamic linker preload/config changed (library hijacking).</description>
+    <mitre><id>T1574.006</id></mitre>
+  </rule>
+
+  <rule id="100317" level="12">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/pam\.d/.+|^/(usr/)?lib(64)?/(x86_64-linux-gnu/|aarch64-linux-gnu/)?security/pam_[^/]+\.so$</field>
+    <description>FIM: PAM configuration or module changed.</description>
+    <mitre><id>T1556.003</id></mitre>
+  </rule>
+
+  <rule id="100318" level="8">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/(profile|bash\.bashrc|bashrc|rc\.local|environment)$|^/etc/(profile\.d|init\.d)/.+|(^|/)\.(bashrc|bash_profile|bash_login|profile|zshrc|zprofile)$</field>
+    <description>FIM: Shell startup or boot script changed.</description>
+    <mitre><id>T1546.004</id><id>T1037.004</id></mitre>
+  </rule>
+
+  <rule id="100319" level="8">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">^/(tmp|dev/shm|var/tmp)/</field>
+    <field name="syscheck.perm" type="pcre2">^(..[xsS]|.....[xsS]|........[xtT])</field>
+    <description>FIM: Executable file dropped in a world-writable temp directory.</description>
+    <mitre><id>T1105</id><id>T1036</id></mitre>
+  </rule>
+
+  <rule id="100320" level="12">
+    <if_sid>550</if_sid>
+    <field name="syscheck.perm_after" type="pcre2">^(..[sS]|.....[sS])</field>
+    <description>FIM: Setuid/setgid bit set on an existing file.</description>
+    <mitre><id>T1548.001</id></mitre>
+  </rule>
+
+  <rule id="100321" level="12">
+    <if_sid>554</if_sid>
+    <field name="syscheck.perm" type="pcre2">^(..[sS]|.....[sS])</field>
+    <description>FIM: New setuid/setgid file created.</description>
+    <mitre><id>T1548.001</id></mitre>
+  </rule>
+
+  <rule id="100322" level="8">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/etc/(hosts|nsswitch\.conf)$</field>
+    <description>FIM: Name-resolution configuration changed.</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+  <rule id="100323" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">^/(usr/)?lib/modules/.+\.ko(\.(gz|xz|zst))?$</field>
+    <description>FIM: New kernel module file installed.</description>
+    <mitre><id>T1547.006</id></mitre>
+  </rule>
+
+  <rule id="100324" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">^/var/www/.+\.(php[0-9]?|phtml|jsp|jspx|aspx?|cgi|pl|py)$</field>
+    <description>FIM: New server-side script in web root (possible web shell).</description>
+    <mitre><id>T1505.003</id></mitre>
+  </rule>
+
+</group>

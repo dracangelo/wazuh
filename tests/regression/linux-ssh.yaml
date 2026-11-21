@@ -1,0 +1,33 @@
+tests:
+  - id: LIN-T1110-001
+    name: SSH brute force (12 failed logins)
+    technique: T1110.001
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [regression, ssh]
+    simulation:
+      script: brute-force/ssh_failed_logins.sh
+      interpreter: bash
+      run_from: local
+      args: ["{target_host}", "12"]
+    expected:
+      rule_ids: ["5712"]        # sshd: brute force trying to get access
+      timeout_seconds: 90
+
+  - id: LIN-T1110-001-NEG
+    name: Single failed SSH login must not raise brute-force alert
+    technique: T1110.001
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    negative: true
+    tags: [regression, ssh]
+    simulation:
+      script: brute-force/ssh_failed_logins.sh
+      interpreter: bash
+      run_from: local
+      args: ["{target_host}", "1"]
+    expected:
+      rule_ids: ["5712"]
+      timeout_seconds: 45

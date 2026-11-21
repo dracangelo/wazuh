@@ -1,0 +1,25 @@
+title: Suspicious Package Installation via Package Manager
+id: 6d9f2a15-4e7b-4c8a-b1d3-0a5e9f2c7b36
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/apt'
+      - '/apt-get'
+      - '/yum'
+      - '/dnf'
+      - '/zypper'
+    CommandLine|contains:
+      - 'install'
+      - ' nmap'
+      - ' netcat'
+      - ' ncat'
+      - ' socat'
+      - ' john'
+      - ' hydra'
+      - ' sqlmap'
+      - ' metasploit'
+  condition: selection
+level: medium
+tags: [attack.execution, attack.t1059, attack.t1204]

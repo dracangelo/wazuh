@@ -1,0 +1,61 @@
+techniques:
+  T1110.001:
+    name: 'Brute Force: Password Guessing'
+    tactic: credential-access
+  T1136.001:
+    name: 'Create Account: Local Account'
+    tactic: persistence
+  T1548.003:
+    name: 'Abuse Elevation Control: Sudo and Sudo Caching'
+    tactic: privilege-escalation
+  T1565.001:
+    name: 'Data Manipulation: Stored Data Manipulation'
+    tactic: impact
+  T1190:
+    name: Exploit Public-Facing Application
+    tactic: initial-access
+  T1059.004:
+    name: 'Command and Scripting Interpreter: Unix Shell'
+    tactic: execution
+  T1595.002:
+    name: 'Active Scanning: Vulnerability Scanning'
+    tactic: reconnaissance
+  T1046:
+    name: Network Service Discovery
+    tactic: discovery
+  T1083:
+    name: File and Directory Discovery
+    tactic: discovery
+  T1082:
+    name: System Information Discovery
+    tactic: discovery
+  T1105:
+    name: Ingress Tool Transfer
+    tactic: command-and-control
+  T1070.002:
+    name: 'Indicator Removal: Clear Linux or Mac System Logs'
+    tactic: defense-evasion
+  T1070.003:
+    name: 'Indicator Removal: Clear Command History'
+    tactic: defense-evasion
+  T1003.008:
+    name: 'OS Credential Dumping: /etc/passwd and /etc/shadow'
+    tactic: credential-access
+  T1548.001:
+    name: 'Abuse Elevation Control: Setuid and Setgid'
+    tactic: privilege-escalation
+  T1098:
+    name: Account Manipulation
+    tactic: persistence
+  T1098.004:
+    name: 'Account Manipulation: SSH Authorized Keys'
+    tactic: persistence
+  T1053.003:
+    name: 'Scheduled Task/Job: Cron'
+    tactic: persistence
+  T1543.002:
+    name: 'Create or Modify System Process: Systemd Service'
+    tactic: persistence
+  T1505.003:
+    name: 'Server Software Component: Web Shell'
+    tactic: persistence

@@ -1,0 +1,17 @@
+title: Registry Run Key Persistence
+id: f6a7b8c9-0d1e-2f3a-4b5c-6d7e8f9a0b1c
+status: experimental
+logsource: {category: process_creation, product: windows}
+detection:
+  selection:
+    Image|endswith:
+      - '\reg.exe'
+      - '\regedit.exe'
+      - '\powershell.exe'
+    CommandLine|contains:
+      - 'CurrentVersion\Run'
+      - 'CurrentVersion\RunOnce'
+      - 'Software\Microsoft\Windows\CurrentVersion\Run'
+  condition: selection
+level: medium
+tags: [attack.persistence, attack.t1547.001]

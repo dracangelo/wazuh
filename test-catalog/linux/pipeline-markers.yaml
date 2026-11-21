@@ -1,0 +1,49 @@
+# Smoke suite: proves each telemetry path (FIM, syslog, auditd, web) works end to end.
+# Run first: dv run --tag smoke --strict
+tests:
+  - id: LIN-MARK-FIM
+    name: FIM lifecycle marker (create, modify, delete dv_fim_test.txt)
+    technique: MARKER
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [smoke, marker, regression]
+    simulation: {script: file-integrity/fim_touch.sh, interpreter: bash}
+    expected:
+      rule_ids: ["100100", "100101", "100102", "100103"]
+      require_all: true
+      timeout_seconds: 120
+
+  - id: LIN-MARK-SYSLOG
+    name: Syslog canary reaches Wazuh
+    technique: MARKER
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [smoke, marker, regression]
+    simulation: {script: rules-lab/scenarios.sh, interpreter: bash, args: [marker_syslog]}
+    expected: {rule_ids: ["100110"], timeout_seconds: 45}
+
+  - id: LIN-MARK-AUDITD
+    name: auditd marker reaches Wazuh and decodes
+    technique: MARKER
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [smoke, marker, regression]
+    simulation: {script: rules-lab/scenarios.sh, interpreter: bash, args: [marker_audit]}
+    expected: {rule_ids: ["100111"], timeout_seconds: 60}
+
+  - id: LIN-MARK-WEB
+    name: Web access-log canary reaches Wazuh
+    technique: MARKER
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [smoke, marker, regression]
+    simulation:
+      script: shellshock/web_probes.sh
+      interpreter: bash
+      run_from: local
+      args: ["{target_host}", "80", canary]
+    expected: {rule_ids: ["100112"], timeout_seconds: 60}

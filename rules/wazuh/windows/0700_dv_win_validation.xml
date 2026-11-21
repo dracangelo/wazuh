@@ -1,0 +1,64 @@
+<!-- Windows pipeline health markers (100700-100706). Run these first to prove each telemetry path.
+     100700 Application log:  eventcreate /id 999 /l APPLICATION /t INFORMATION /so DV_CANARY /d "DV_CANARY id=1"
+     100701 Sysmon event 1:   cmd /c rem DV_SYSMON_CANARY
+     100702 Security log:     net use \\127.0.0.1\IPC$ /user:dv_canary_user BadPass1   (produces a 4625)
+     100703-100706 FIM:       create, edit, then delete C:\Windows\Temp\dv_fim_test.txt -->
+<group name="local,windows,dv_validation,dv_marker,">
+
+  <rule id="100700" level="5">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^DV_CANARY$</field>
+    <field name="win.system.eventID">^999$</field>
+    <description>Marker: Windows Application-log canary received from agent.</description>
+  </rule>
+
+  <rule id="100701" level="5">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^1$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">DV_SYSMON_CANARY</field>
+    <description>Marker: Sysmon process-creation canary received from agent.</description>
+  </rule>
+
+  <rule id="100702" level="5">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Security-Auditing$</field>
+    <field name="win.system.eventID">^4625$</field>
+    <field name="win.eventdata.targetUserName">^dv_canary_user$</field>
+    <description>Marker: Security-log canary (failed logon for dv_canary_user) received from agent.</description>
+  </rule>
+
+</group>
+
+<group name="local,windows,syscheck,dv_validation,dv_marker,">
+
+  <rule id="100703" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\\dv_fim_test\.txt$</field>
+    <description>Marker: dv_fim_test.txt created in a monitored Windows directory.</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+  <rule id="100704" level="10">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)\\dv_fim_test\.txt$</field>
+    <description>Marker: dv_fim_test.txt modified in a monitored Windows directory.</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+  <rule id="100705" level="10">
+    <if_sid>553</if_sid>
+    <field name="file" type="pcre2">(?i)\\dv_fim_test\.txt$</field>
+    <description>Marker: dv_fim_test.txt deleted from a monitored Windows directory.</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+  <rule id="100706" level="11" timeframe="60">
+    <if_sid>100705</if_sid>
+    <if_matched_sid>100704</if_matched_sid>
+    <same_field>file</same_field>
+    <description>Marker: dv_fim_test.txt full lifecycle observed (create, modify, delete).</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+
+</group>

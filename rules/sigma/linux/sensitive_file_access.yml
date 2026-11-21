@@ -1,0 +1,22 @@
+title: Access to Sensitive System Files
+id: 7f2a9c14-5e8b-4d3a-9c1e-0f6b8a2d4e73
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/cat'
+      - '/less'
+      - '/more'
+      - '/head'
+      - '/tail'
+      - '/grep'
+    CommandLine|contains:
+      - '/etc/shadow'
+      - '/etc/passwd'
+      - '/etc/sudoers'
+      - '/root/.ssh/'
+      - '/etc/ssh/sshd_config'
+  condition: selection
+level: medium
+tags: [attack.credential_access, attack.discovery, attack.t1003.008]

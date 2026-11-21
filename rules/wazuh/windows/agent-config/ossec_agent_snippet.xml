@@ -1,0 +1,16 @@
+<!-- Merge into C:\Program Files (x86)\ossec-agent\ossec.conf, or push via an agent group. -->
+<ossec_config>
+  <localfile><location>Security</location><log_format>eventchannel</log_format></localfile>
+  <localfile><location>System</location><log_format>eventchannel</log_format></localfile>
+  <localfile><location>Application</location><log_format>eventchannel</log_format></localfile>
+  <localfile><location>Microsoft-Windows-Sysmon/Operational</location><log_format>eventchannel</log_format></localfile>
+  <localfile><location>Microsoft-Windows-PowerShell/Operational</location><log_format>eventchannel</log_format></localfile>
+  <localfile><location>Microsoft-Windows-Windows Defender/Operational</location><log_format>eventchannel</log_format></localfile>
+
+  <syscheck>
+    <directories check_all="yes" realtime="yes">C:\Windows\Temp</directories>
+    <directories check_all="yes" realtime="yes">C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup</directories>
+    <directories check_all="yes" realtime="yes">C:\Windows\System32\Tasks</directories>
+    <directories check_all="yes" realtime="yes">C:\Windows\System32\drivers\etc</directories>
+  </syscheck>
+</ossec_config>

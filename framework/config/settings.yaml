@@ -1,0 +1,30 @@
+# ${VAR} values are expanded from environment variables.
+wazuh:
+  api_url: https://wazuh-manager:55000
+  api_user: ${WAZUH_API_USER}
+  api_password: ${WAZUH_API_PASSWORD}
+  verify_tls: false
+  alerts:
+    source: indexer            # indexer | file
+    indexer_url: https://wazuh-indexer:9200
+    indexer_user: ${WAZUH_INDEXER_USER}
+    indexer_password: ${WAZUH_INDEXER_PASSWORD}
+    index_pattern: "wazuh-alerts-4.x-*"
+    file_path: /var/ossec/logs/alerts/alerts.json   # used when source: file
+
+evaluation:
+  default_timeout_seconds: 120
+  poll_interval_seconds: 5
+  clock_skew_seconds: 5
+
+paths:
+  catalog: test-catalog
+  atomic: atomic
+  custom: custom-simulations
+  regression: tests/regression
+  evidence: evidence
+  reports: reports
+  rules: rules/wazuh
+  techniques: mappings/attack-techniques.yaml
+  coverage: mappings/coverage-matrix.csv
+  database: evidence/results.sqlite

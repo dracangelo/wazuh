@@ -1,0 +1,50 @@
+tests:
+  - id: LIN-T1136-001
+    name: Atomic - local account creation
+    technique: T1136.001
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [regression, atomic]
+    simulation: {test: 1}
+    expected:
+      rule_ids: ["5902"]        # new user added
+      timeout_seconds: 60
+
+  - id: LIN-T1548-003
+    name: Failed sudo attempts
+    technique: T1548.003
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    simulation: {script: privilege-escalation/failed_sudo.sh, interpreter: bash}
+    expected:
+      rule_groups: [sudo]
+      timeout_seconds: 60
+
+  - id: LIN-T1565-001
+    name: FIM - file create/modify/delete in /etc
+    technique: T1565.001
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    simulation: {script: file-integrity/fim_touch.sh, interpreter: bash}
+    expected:
+      rule_ids: ["550", "553", "554", "100100"]
+      timeout_seconds: 180
+
+  - id: LIN-T1190-001
+    name: Shellshock probe against lab web server
+    technique: T1190
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    simulation:
+      script: shellshock/shellshock_probe.sh
+      interpreter: bash
+      run_from: local
+      args: ["{target_host}", "80"]
+    expected:
+      rule_groups: [web, attack]
+      min_level: 6
+      timeout_seconds: 60

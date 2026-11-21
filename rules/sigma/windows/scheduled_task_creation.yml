@@ -1,0 +1,13 @@
+title: Suspicious Scheduled Task Creation
+id: d4e5f6a7-8b9c-0d1e-2f3a-4b5c6d7e8f9a
+status: experimental
+logsource: {category: process_creation, product: windows}
+detection:
+  selection:
+    Image|endswith: '\schtasks.exe'
+    CommandLine|contains|all:
+      - '/create'
+      - '/tn'
+  condition: selection
+level: medium
+tags: [attack.persistence, attack.execution, attack.t1053.005]

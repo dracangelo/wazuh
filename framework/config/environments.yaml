@@ -1,0 +1,22 @@
+# Lab targets only. Never point this at production systems.
+# transport: ssh (Linux, or Windows with OpenSSH) | local
+targets:
+  local:
+    platform: linux
+    transport: local
+    agent_name: local
+  lab-linux-01:
+    platform: linux
+    transport: ssh
+    host: 10.0.0.21
+    port: 22
+    user: labrunner
+    key_file: ~/.ssh/lab_ed25519
+    agent_name: lab-linux-01
+  lab-win-01:
+    platform: windows
+    transport: ssh
+    host: 10.0.0.31
+    user: labrunner
+    key_file: ~/.ssh/lab_ed25519
+    agent_name: lab-win-01

@@ -1,0 +1,99 @@
+<!-- Defense evasion: log clearing, Defender/firewall/audit tampering, UAC, shadow copies. -->
+<group name="local,windows,defense_evasion,dv_validation,">
+
+  <rule id="100930" level="14">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Eventlog$</field>
+    <field name="win.system.eventID">^1102$</field>
+    <description>Windows Security audit log was cleared.</description>
+    <mitre><id>T1070.001</id></mitre>
+  </rule>
+
+  <rule id="100931" level="13">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Eventlog$</field>
+    <field name="win.system.eventID">^104$</field>
+    <description>Windows System (or other) event log was cleared.</description>
+    <mitre><id>T1070.001</id></mitre>
+  </rule>
+
+  <rule id="100932" level="13">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\bwevtutil(\.exe)?\s+(cl|clear-log)\b|clear-eventlog|remove-eventlog|limit-eventlog</field>
+    <description>Event log clearing command executed.</description>
+    <mitre><id>T1070.001</id></mitre>
+  </rule>
+
+  <rule id="100933" level="12">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Windows Defender$</field>
+    <field name="win.system.eventID">^(5001|5010|5012)$</field>
+    <description>Microsoft Defender protection was disabled.</description>
+    <mitre><id>T1562.001</id></mitre>
+  </rule>
+
+  <rule id="100934" level="13">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(set-mppreference\s+.*-disable(realtimemonitoring|behaviormonitoring|ioavprotection|scriptscanning|intrusionpreventionsystem)\s+\$?(true|1)|add-mppreference\s+.*-exclusion(path|process|extension)|\bsc(\.exe)?\s+(stop|config)\s+(windefend|sense|wdnissvc|wdfilter)|mpcmdrun\S*\s+.*-removedefinitions)</field>
+    <description>Command line disabling Defender or adding Defender exclusions.</description>
+    <mitre><id>T1562.001</id></mitre>
+  </rule>
+
+  <rule id="100935" level="12">
+    <if_sid>100717</if_sid>
+    <field name="win.eventdata.targetObject" type="pcre2">(?i)\\Windows Defender\\Exclusions\\</field>
+    <description>Registry change under Defender exclusions.</description>
+    <mitre><id>T1562.001</id></mitre>
+  </rule>
+
+  <rule id="100936" level="11">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(netsh(\.exe)?\s+advfirewall\s+set\s+\S+\s+state\s+off|netsh(\.exe)?\s+firewall\s+set\s+opmode\s+(mode=)?disable|set-netfirewallprofile\s+.*-enabled\s+false)</field>
+    <description>Windows Firewall disabled from the command line.</description>
+    <mitre><id>T1562.004</id></mitre>
+  </rule>
+
+  <rule id="100937" level="13">
+    <if_sid>100719</if_sid>
+    <field name="win.eventdata.scriptBlockText" type="pcre2">(?i)(amsiinitfailed|amsiutils|amsicontext|\[ref\]\.assembly\.gettype)</field>
+    <description>PowerShell script block contains an AMSI bypass pattern.</description>
+    <mitre><id>T1562.001</id></mitre>
+  </rule>
+
+  <rule id="100938" level="14">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(fltmc(\.exe)?\s+unload\s+sysmon\S*|sysmon\S*\s+-u\b|\bsc(\.exe)?\s+(stop|delete|config)\s+(sysmon\S*|wazuh\S*|windefend))</field>
+    <description>Command line tampering with Sysmon, Wazuh agent or Defender services.</description>
+    <mitre><id>T1562.001</id></mitre>
+  </rule>
+
+  <rule id="100939" level="14">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(vssadmin(\.exe)?\s+delete\s+shadows|wmic\s+shadowcopy\s+delete|bcdedit.*(recoveryenabled\s+no|ignoreallfailures)|wbadmin\s+delete\s+(catalog|backup|systemstatebackup)|resize\s+shadowstorage)</field>
+    <description>Shadow copy or backup deletion (ransomware precursor).</description>
+    <mitre><id>T1490</id></mitre>
+  </rule>
+
+  <rule id="100940" level="12">
+    <if_sid>100717</if_sid>
+    <field name="win.eventdata.targetObject" type="pcre2">(?i)\\Software\\Classes\\(ms-settings|mscfile|exefile|Folder)\\shell\\open\\command</field>
+    <description>Registry hijack commonly used for UAC bypass (fodhelper, eventvwr style).</description>
+    <mitre><id>T1548.002</id></mitre>
+  </rule>
+
+  <rule id="100941" level="11">
+    <if_sid>100717</if_sid>
+    <field name="win.eventdata.targetObject" type="pcre2">(?i)\\Policies\\System\\(EnableLUA|ConsentPromptBehaviorAdmin)$</field>
+    <field name="win.eventdata.details" type="pcre2">DWORD \(0x00000000\)</field>
+    <description>UAC disabled or admin consent prompt turned off.</description>
+    <mitre><id>T1548.002</id></mitre>
+  </rule>
+
+  <rule id="100942" level="12">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)auditpol(\.exe)?\s+/(clear|remove|set\s+.*/(success|failure):disable)</field>
+    <description>Audit policy cleared or disabled with auditpol.</description>
+    <mitre><id>T1562.002</id></mitre>
+  </rule>
+
+</group>

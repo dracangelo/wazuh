@@ -1,0 +1,155 @@
+<!-- Execution, privilege escalation, credential access. Requires auditd telemetry:
+     agent-config/audit/99-dv.rules loaded and /var/log/audit/audit.log collected with log_format "audit".
+     Note: auditd hex-encodes EXECVE arguments that contain spaces or quotes, so argument regexes only
+     see plain arguments. Detections that must survive that use syscall-level keys instead. -->
+<group name="local,auditd,dv_validation,">
+
+  <!-- Base rules (level 0, never alert) -->
+  <rule id="100400" level="0">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_exec$</field>
+    <description>auditd: Process execution by a logged-in session (dv_exec).</description>
+  </rule>
+
+  <rule id="100401" level="10">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">^/(tmp|dev/shm|var/tmp)/</field>
+    <description>Execution of a binary from a world-writable temp directory.</description>
+    <mitre><id>T1059.004</id><id>T1036</id></mitre>
+    <group>execution,</group>
+  </rule>
+
+  <rule id="100402" level="9">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(curl|wget|tftp|aria2c)$</field>
+    <regex type="pcre2">a\d+="/(tmp|dev/shm|var/tmp)/[^"]+"</regex>
+    <description>Download utility writing into a world-writable temp directory.</description>
+    <mitre><id>T1105</id></mitre>
+    <group>execution,</group>
+  </rule>
+
+  <rule id="100403" level="7">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(nc|ncat|netcat|nc\.traditional|nc\.openbsd|socat)$</field>
+    <description>Netcat/socat family tool executed.</description>
+    <mitre><id>T1095</id></mitre>
+    <group>execution,</group>
+  </rule>
+
+  <rule id="100404" level="13">
+    <if_sid>100403</if_sid>
+    <regex type="pcre2">a\d+="(-e|-c|--exec|--sh-exec|--lua-exec)"|a\d+="(EXEC|SYSTEM):</regex>
+    <description>Netcat/socat started with command execution (bind or reverse shell).</description>
+    <mitre><id>T1059.004</id><id>T1095</id></mitre>
+    <group>execution,reverse_shell,</group>
+  </rule>
+
+  <rule id="100405" level="10">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(nmap|masscan|zmap|hydra|medusa|ncrack|patator|john|hashcat|sqlmap|nikto|wpscan|gobuster|dirb|ffuf|responder|bettercap)$</field>
+    <description>Offensive security tool executed.</description>
+    <mitre><id>T1046</id><id>T1110</id></mitre>
+    <group>execution,attack_tooling,</group>
+  </rule>
+
+  <rule id="100406" level="9">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/find$</field>
+    <regex type="pcre2">a\d+="-perm"[^\n]*a\d+="(-|/)?(4000|2000|6000|u=s|g=s)"</regex>
+    <description>find used to enumerate setuid/setgid binaries.</description>
+    <mitre><id>T1083</id></mitre>
+    <group>discovery,privilege_escalation,</group>
+  </rule>
+
+  <rule id="100407" level="10">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(rm|ln|truncate|shred|unlink)$</field>
+    <regex type="pcre2">\.(bash|zsh|sh|python|mysql|psql|lesshst)_history|\.viminfo</regex>
+    <description>Shell or tool history file removed, linked or truncated.</description>
+    <mitre><id>T1070.003</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100408" level="0">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(whoami|id|uname|hostname|ip|ss|w|who|last|ifconfig|netstat|arp)$</field>
+    <description>auditd: Common host reconnaissance command executed.</description>
+  </rule>
+
+  <rule id="100409" level="8" frequency="8" timeframe="60">
+    <if_matched_sid>100408</if_matched_sid>
+    <same_field>audit.auid</same_field>
+    <description>Burst of host reconnaissance commands from one session.</description>
+    <mitre><id>T1082</id><id>T1033</id><id>T1016</id></mitre>
+    <group>discovery,</group>
+  </rule>
+
+  <rule id="100410" level="12">
+    <if_sid>100400</if_sid>
+    <regex type="pcre2">(?i)(linpeas|linenum|linux-exploit-suggester|/lse\.sh|pspy(32|64)?\b|chisel|ligolo|mimipenguin|lazagne)</regex>
+    <description>Known post-exploitation or enumeration tool name executed.</description>
+    <mitre><id>T1082</id><id>T1572</id></mitre>
+    <group>execution,attack_tooling,</group>
+  </rule>
+
+  <!-- Syscall-level rules (one audit key each) -->
+  <rule id="100420" level="12">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_shell_net$</field>
+    <description>A shell opened a network connection (reverse shell or /dev/tcp usage).</description>
+    <mitre><id>T1059.004</id><id>T1071</id></mitre>
+    <group>execution,reverse_shell,</group>
+  </rule>
+
+  <rule id="100421" level="12">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_setuid$</field>
+    <description>Setuid bit set on a file by a logged-in user.</description>
+    <mitre><id>T1548.001</id></mitre>
+    <group>privilege_escalation,</group>
+  </rule>
+
+  <rule id="100422" level="8">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_kmod$</field>
+    <description>Kernel module loaded or unloaded by a logged-in user.</description>
+    <mitre><id>T1547.006</id></mitre>
+    <group>persistence,</group>
+  </rule>
+
+  <rule id="100423" level="8">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_ptrace$</field>
+    <field name="audit.exe" negate="yes" type="pcre2">/(gdb|strace|ltrace|lldb|perf|valgrind|dlv|rr)$</field>
+    <description>ptrace attach or memory write by a non-debugger process.</description>
+    <mitre><id>T1055.008</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100424" level="7">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_memfd$</field>
+    <field name="audit.exe" negate="yes" type="pcre2">(firefox|chrome|chromium|brave|pipewire|pulseaudio|Xorg|Xwayland|gnome|kwin|plasma|systemd|dbus|snapd|containerd|dockerd|java|node|electron|code)</field>
+    <description>memfd_create used by an unexpected process (fileless execution).</description>
+    <mitre><id>T1620</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100425" level="12">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_shadow_read$</field>
+    <field name="audit.exe" negate="yes" type="pcre2">(unix_chkpwd|/passwd|/su|/sudo|sshd|/login|/chage|/useradd|/usermod|/userdel|/vipw|/gpasswd|/chpasswd|/pwck|/grpck|/cron|systemd|polkit|lightdm|gdm|sssd|nscd)</field>
+    <description>/etc/shadow read by a process that does not normally access it.</description>
+    <mitre><id>T1003.008</id></mitre>
+    <group>credential_access,</group>
+  </rule>
+
+  <rule id="100426" level="12">
+    <decoded_as>auditd</decoded_as>
+    <field name="audit.key">^dv_log_delete$</field>
+    <description>Log file deleted or renamed under /var/log by a logged-in user.</description>
+    <mitre><id>T1070.002</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+</group>

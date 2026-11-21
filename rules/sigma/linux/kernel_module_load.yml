@@ -1,0 +1,13 @@
+title: Kernel Module Loading
+id: 3c8e5a27-6b1d-4f9e-a4c2-8d0e7b3f1a95
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/insmod'
+      - '/modprobe'
+      - '/rmmod'
+  condition: selection
+level: high
+tags: [attack.persistence, attack.privilege_escalation, attack.t1547.006]

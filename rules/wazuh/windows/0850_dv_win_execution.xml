@@ -1,0 +1,179 @@
+<!-- Execution and lateral movement, mostly Sysmon event 1 children (base 100712).
+     Argument patterns are case-insensitive. Levels 8-9 are for triage, not paging. -->
+<group name="local,windows,sysmon,execution,dv_validation,">
+
+  <rule id="100850" level="13">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)\\(winword|excel|powerpnt|outlook|onenote|msaccess|mspub|visio)\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(cmd|powershell|pwsh|wscript|cscript|mshta|rundll32|regsvr32|certutil|bitsadmin|wmic|msbuild)\.exe$</field>
+    <description>Office application spawned a shell or script engine.</description>
+    <mitre><id>T1204.002</id><id>T1059</id></mitre>
+  </rule>
+
+  <rule id="100851" level="10">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\certutil\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\s[-/](urlcache|decode|decodehex|encode)\b</field>
+    <description>certutil used to download, encode or decode content.</description>
+    <mitre><id>T1105</id><id>T1140</id></mitre>
+  </rule>
+
+  <rule id="100852" level="9">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\bitsadmin\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)/(transfer|addfile|setnotifycmdline)</field>
+    <description>bitsadmin used to transfer files or set a notify command.</description>
+    <mitre><id>T1197</id></mitre>
+  </rule>
+
+  <rule id="100853" level="12">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\mshta\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(https?://|javascript:|vbscript:)</field>
+    <description>mshta executing remote or inline script content.</description>
+    <mitre><id>T1218.005</id></mitre>
+  </rule>
+
+  <rule id="100854" level="12">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\regsvr32\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(/i:(https?:|\\\\)|scrobj\.dll)</field>
+    <description>regsvr32 loading a remote or scriptlet payload.</description>
+    <mitre><id>T1218.010</id></mitre>
+  </rule>
+
+  <rule id="100855" level="11">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\rundll32\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(javascript:|vbscript:|https?://|\\\\\S+\\\S+\.dll|\\(temp|appdata|programdata|users\\public)\\\S+\.dll)</field>
+    <description>rundll32 loading script content, a remote DLL or a DLL from a user-writable path.</description>
+    <mitre><id>T1218.011</id></mitre>
+  </rule>
+
+  <rule id="100856" level="10">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\s-e(nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{20,}</field>
+    <description>PowerShell started with an encoded command.</description>
+    <mitre><id>T1059.001</id><id>T1027</id></mitre>
+  </rule>
+
+  <rule id="100857" level="9">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(downloadstring|downloadfile|invoke-webrequest|invoke-restmethod|start-bitstransfer|net\.webclient|invoke-expression|\biex\b|\biwr\s|\birm\s)</field>
+    <description>PowerShell download cradle or inline expression execution.</description>
+    <mitre><id>T1059.001</id><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="100858" level="9">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)^(?=.*\s-(w|windowstyle)\s+hid)(?=.*\s-(nop|noprofile)\b)</field>
+    <description>PowerShell started hidden with no profile.</description>
+    <mitre><id>T1059.001</id></mitre>
+  </rule>
+
+  <rule id="100859" level="11">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\wmic\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(process\s+call\s+create|/node:)</field>
+    <description>wmic creating a process or targeting a remote node.</description>
+    <mitre><id>T1047</id></mitre>
+  </rule>
+
+  <rule id="100860" level="12">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\bnet1?(\.exe)?\s+(user\s+.*\s/add\b|localgroup\s+"?administrators"?\s+.*\s/add\b)</field>
+    <description>net.exe used to add a user or add a member to Administrators.</description>
+    <mitre><id>T1136.001</id><id>T1098</id></mitre>
+  </rule>
+
+  <rule id="100861" level="0">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(whoami|ipconfig|systeminfo|tasklist|arp|netstat|nltest|quser|qwinsta|hostname|nbtstat|route)\.exe$</field>
+    <description>Base: common discovery command executed.</description>
+  </rule>
+
+  <rule id="100862" level="8" frequency="8" timeframe="60">
+    <if_matched_sid>100861</if_matched_sid>
+    <same_field>win.eventdata.user</same_field>
+    <description>Burst of host and network discovery commands from one account.</description>
+    <mitre><id>T1082</id><id>T1033</id><id>T1016</id></mitre>
+    <group>discovery,</group>
+  </rule>
+
+  <rule id="100863" level="8">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(users\\public|programdata|windows\\temp|appdata\\local\\temp|perflogs|\$recycle\.bin)\\[^\\]+\.(exe|scr|com)$</field>
+    <description>Executable launched directly from a user-writable directory.</description>
+    <mitre><id>T1204.002</id><id>T1036</id></mitre>
+  </rule>
+
+  <rule id="100864" level="12">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)^(?!c:\\windows\\(system32|syswow64)\\|c:\\windows\\explorer\.exe$).*\\(svchost|lsass|csrss|services|winlogon|smss|taskhostw?|spoolsv|wininit|lsm)\.exe$</field>
+    <description>System process name running from an unexpected path (masquerading).</description>
+    <mitre><id>T1036.005</id></mitre>
+  </rule>
+
+  <rule id="100865" level="12">
+    <if_sid>100714</if_sid>
+    <field name="win.eventdata.targetImage" type="pcre2">(?i)\\(lsass|winlogon|explorer|svchost|spoolsv)\.exe$</field>
+    <field name="win.eventdata.sourceImage" negate="yes" type="pcre2">(?i)\\(csrss|wininit|services|MsMpEng)\.exe$</field>
+    <description>Remote thread created in a sensitive system process.</description>
+    <mitre><id>T1055</id></mitre>
+  </rule>
+
+  <rule id="100866" level="10">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(psexec|psexec64|paexec)\.exe$</field>
+    <description>PsExec-style remote execution tool launched.</description>
+    <mitre><id>T1569.002</id><id>T1021.002</id></mitre>
+  </rule>
+
+  <rule id="100867" level="10">
+    <if_sid>100713</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(mshta|regsvr32|rundll32|certutil|bitsadmin|wscript|cscript|msbuild|installutil|regasm|regsvcs)\.exe$</field>
+    <field name="win.eventdata.initiated">^true$</field>
+    <field name="win.eventdata.destinationIp" negate="yes" type="pcre2">^(10\.|127\.|169\.254\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|::1$|fe80:|f[cd][0-9a-f]{2}:)</field>
+    <description>Living-off-the-land binary made an outbound connection to a public address.</description>
+    <mitre><id>T1218</id><id>T1071</id></mitre>
+  </rule>
+
+  <rule id="100868" level="13">
+    <if_sid>100719</if_sid>
+    <field name="win.eventdata.scriptBlockText" type="pcre2">(?i)(invoke-mimikatz|sekurlsa::|invoke-kerberoast|invoke-bloodhound|sharphound|invoke-reflectivepeinjection|invoke-shellcode|invoke-dcsync|invoke-powerkatz|get-gpppassword|invoke-inveigh|powersploit)</field>
+    <description>PowerShell script block contains a known offensive framework or function name.</description>
+    <mitre><id>T1059.001</id><id>T1003</id></mitre>
+  </rule>
+
+  <rule id="100869" level="10">
+    <if_sid>100719</if_sid>
+    <field name="win.eventdata.scriptBlockText" type="pcre2">(?i)\[(system\.)?reflection\.assembly\]::load\s*\(</field>
+    <description>PowerShell loading a .NET assembly from memory.</description>
+    <mitre><id>T1620</id><id>T1059.001</id></mitre>
+  </rule>
+
+  <rule id="100870" level="11">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\bsc(\.exe)?\s+\\\\\S+\s+(create|config|start)\b</field>
+    <description>sc.exe creating or starting a service on a remote host.</description>
+    <mitre><id>T1569.002</id><id>T1021.002</id></mitre>
+  </rule>
+
+  <rule id="100871" level="9">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\wsmprovhost\.exe$</field>
+    <description>WinRM remote PowerShell host process started.</description>
+    <mitre><id>T1021.006</id></mitre>
+  </rule>
+
+  <rule id="100872" level="11">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\bschtasks(\.exe)?\s+.*/create\b.*(powershell|pwsh|cmd(\.exe)?\s|mshta|wscript|cscript|rundll32|regsvr32|\\temp\\|\\appdata\\|\\programdata\\|\\users\\public\\)</field>
+    <description>schtasks creating a task that runs a script engine or a user-writable path.</description>
+    <mitre><id>T1053.005</id></mitre>
+  </rule>
+
+</group>

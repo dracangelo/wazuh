@@ -1,0 +1,90 @@
+<!-- Level-0 base rules (never alert). Detection rules in 0750-0930 are children of these.
+     Sysmon bases need Sysmon installed and logging the event type. Security bases need audit policy
+     (see agent-config/audit_policy.ps1). -->
+<group name="local,windows,dv_validation,">
+
+  <rule id="100710" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Security-Auditing$</field>
+    <field name="win.system.eventID">^4624$</field>
+    <description>Base: Security 4624 logon success.</description>
+  </rule>
+
+  <rule id="100711" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Security-Auditing$</field>
+    <field name="win.system.eventID">^4625$</field>
+    <description>Base: Security 4625 logon failure.</description>
+  </rule>
+
+  <rule id="100712" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^1$</field>
+    <description>Base: Sysmon 1 process created.</description>
+  </rule>
+
+  <rule id="100713" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^3$</field>
+    <description>Base: Sysmon 3 network connection.</description>
+  </rule>
+
+  <rule id="100714" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^8$</field>
+    <description>Base: Sysmon 8 CreateRemoteThread.</description>
+  </rule>
+
+  <rule id="100715" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^10$</field>
+    <description>Base: Sysmon 10 process access.</description>
+  </rule>
+
+  <rule id="100716" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^11$</field>
+    <description>Base: Sysmon 11 file created.</description>
+  </rule>
+
+  <rule id="100717" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^13$</field>
+    <description>Base: Sysmon 13 registry value set.</description>
+  </rule>
+
+  <rule id="100718" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^(19|20|21)$</field>
+    <description>Base: Sysmon 19/20/21 WMI event filter, consumer or binding.</description>
+  </rule>
+
+  <rule id="100719" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-PowerShell$</field>
+    <field name="win.system.eventID">^4104$</field>
+    <description>Base: PowerShell 4104 script block logged.</description>
+  </rule>
+
+  <rule id="100720" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Service Control Manager$</field>
+    <field name="win.system.eventID">^7045$</field>
+    <description>Base: System 7045 service installed.</description>
+  </rule>
+
+  <rule id="100721" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Security-Auditing$</field>
+    <field name="win.system.eventID">^4698$</field>
+    <description>Base: Security 4698 scheduled task created.</description>
+  </rule>
+
+</group>

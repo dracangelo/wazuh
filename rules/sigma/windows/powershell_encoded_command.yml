@@ -1,0 +1,16 @@
+title: PowerShell Encoded Command Execution
+id: a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+status: experimental
+logsource: {category: process_creation, product: windows}
+detection:
+  selection:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains:
+      - ' -enc '
+      - ' -EncodedCommand '
+      - ' -e '
+  condition: selection
+level: high
+tags: [attack.execution, attack.t1059.001]

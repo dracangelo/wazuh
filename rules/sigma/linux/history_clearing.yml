@@ -1,0 +1,19 @@
+title: Command History Clearing (Anti-Forensics)
+id: 0e6b4c82-9a3f-4d1e-8b7c-2f5a0d9e1c48
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/rm'
+      - '/shred'
+      - '/truncate'
+      - '/echo'
+    CommandLine|contains:
+      - '.bash_history'
+      - '.zsh_history'
+      - 'history -c'
+      - 'history -w'
+  condition: selection
+level: high
+tags: [attack.defense_evasion, attack.t1070.003]

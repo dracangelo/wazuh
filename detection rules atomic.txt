@@ -1,0 +1,89 @@
+detection-rules/
+│
+├── README.md
+│
+├── framework/
+│   ├── pyproject.toml
+│   ├── config/
+│   │   ├── settings.yaml
+│   │   └── environments.yaml
+│   │
+│   └── src/
+│       └── validator/
+│           ├── cli.py
+│           ├── orchestrator.py
+│           ├── models.py
+│           │
+│           ├── adapters/
+│           │   ├── base.py
+│           │   ├── atomic.py
+│           │   └── custom.py
+│           │
+│           ├── collectors/
+│           │   ├── wazuh_api.py
+│           │   ├── wazuh_alerts.py
+│           │   └── endpoint_logs.py
+│           │
+│           ├── evaluation/
+│           │   ├── matcher.py
+│           │   ├── evaluator.py
+│           │   └── metrics.py
+│           │
+│           ├── regression/
+│           │   ├── runner.py
+│           │   └── comparator.py
+│           │
+│           ├── storage/
+│           │   ├── database.py
+│           │   └── repository.py
+│           │
+│           └── reporting/
+│               ├── json_report.py
+│               ├── csv_report.py
+│               ├── html_report.py
+│               └── pdf_report.py
+│
+├── atomic/
+│   ├── linux/
+│   ├── windows/
+│   └── network/
+│
+├── custom-simulations/
+│   ├── brute-force/
+│   ├── shellshock/
+│   ├── file-integrity/
+│   └── privilege-escalation/
+│
+├── rules/
+│   ├── wazuh/
+│   │   ├── linux/
+│   │   └── windows/
+│   └── sigma/
+│       ├── linux/
+│       └── windows/
+│
+├── test-catalog/
+│   ├── linux/
+│   ├── windows/
+│   └── network/
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── positive/
+│   ├── negative/
+│   └── regression/
+│
+├── mappings/
+│   ├── attack-techniques.yaml
+│   └── coverage-matrix.csv
+│
+├── evidence/
+│   └── .gitkeep
+│
+├── reports/
+│   └── .gitkeep
+│
+└── .github/
+    └── workflows/
+        └── validate.yml

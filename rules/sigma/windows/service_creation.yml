@@ -1,0 +1,15 @@
+title: New Windows Service Created
+id: e5f6a7b8-9c0d-1e2f-3a4b-5c6d7e8f9a0b
+status: experimental
+logsource: {category: process_creation, product: windows}
+detection:
+  selection:
+    Image|endswith:
+      - '\sc.exe'
+      - '\powershell.exe'
+    CommandLine|contains:
+      - 'create '
+      - 'New-Service'
+  condition: selection
+level: medium
+tags: [attack.persistence, attack.privilege_escalation, attack.t1543.003]

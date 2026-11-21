@@ -1,0 +1,89 @@
+<!-- Authentication and privilege use (sshd, sudo, su). Built on stock Wazuh parents:
+     5715 sshd success, 5712 sshd brute force, 5716 sshd failed password, 5720 multiple sshd failures,
+     5402 sudo to ROOT executed, 5303 su success. Verify them with the dv rules-check command in live mode. -->
+<group name="local,authentication,dv_validation,">
+
+  <rule id="100200" level="10">
+    <if_sid>5715</if_sid>
+    <user>^root$</user>
+    <description>sshd: Direct root login succeeded.</description>
+    <mitre><id>T1078.003</id><id>T1021.004</id></mitre>
+    <group>authentication_success,ssh_root_login,</group>
+  </rule>
+
+  <rule id="100201" level="14" timeframe="600">
+    <if_sid>5715</if_sid>
+    <if_matched_sid>5712</if_matched_sid>
+    <same_source_ip />
+    <description>sshd: Login succeeded after SSH brute force from the same source IP.</description>
+    <mitre><id>T1110.001</id><id>T1078</id></mitre>
+    <group>authentication_success,brute_force_success,</group>
+  </rule>
+
+  <rule id="100202" level="12" timeframe="600">
+    <if_sid>5715</if_sid>
+    <if_matched_sid>5720</if_matched_sid>
+    <same_source_ip />
+    <description>sshd: Login succeeded after multiple authentication failures from the same source IP.</description>
+    <mitre><id>T1110.001</id><id>T1078</id></mitre>
+    <group>authentication_success,brute_force_success,</group>
+  </rule>
+
+  <rule id="100203" level="8">
+    <if_sid>5715</if_sid>
+    <time>9 pm - 6 am</time>
+    <description>sshd: Login succeeded outside business hours (21:00-06:00).</description>
+    <mitre><id>T1078</id></mitre>
+    <group>authentication_success,off_hours,</group>
+  </rule>
+
+  <rule id="100204" level="12">
+    <if_sid>5715</if_sid>
+    <user>^(www-data|apache|nginx|httpd|mysql|postgres|redis|mongodb|daemon|nobody|bin|sys|games|man|lp|mail|news|uucp|proxy|backup|list|irc|gnats|sshd)$</user>
+    <description>sshd: Interactive login by a service account that should never log in.</description>
+    <mitre><id>T1078.003</id></mitre>
+    <group>authentication_success,service_account_login,</group>
+  </rule>
+
+  <rule id="100205" level="10" frequency="5" timeframe="120">
+    <if_matched_sid>5716</if_matched_sid>
+    <same_source_ip />
+    <user>^root$</user>
+    <description>sshd: Repeated failed password logins for root from the same source IP.</description>
+    <mitre><id>T1110.001</id></mitre>
+    <group>authentication_failures,ssh_root_login,</group>
+  </rule>
+
+  <rule id="100206" level="8">
+    <if_sid>5402</if_sid>
+    <regex type="pcre2">COMMAND=(/usr)?/bin/(ba|z|da|k|c|tc)?sh(\s|$)|COMMAND=(/usr)?/bin/su(\s|$)</regex>
+    <description>sudo: Interactive root shell obtained via sudo.</description>
+    <mitre><id>T1548.003</id></mitre>
+    <group>sudo,privilege_escalation,</group>
+  </rule>
+
+  <rule id="100207" level="10">
+    <if_sid>5402</if_sid>
+    <regex type="pcre2">COMMAND=\S*/chmod\s+(\S+\s+)*(u\+s|g\+s|[0-7]?[2-7][0-7]{3}\b)</regex>
+    <description>sudo: Setuid/setgid bit set on a file via sudo chmod.</description>
+    <mitre><id>T1548.001</id></mitre>
+    <group>sudo,privilege_escalation,</group>
+  </rule>
+
+  <rule id="100208" level="9">
+    <if_sid>5402</if_sid>
+    <regex type="pcre2">COMMAND=\S*/(visudo|vipw|vigr)\b|COMMAND=\S+\s+.*/etc/(sudoers|shadow|gshadow)\b</regex>
+    <description>sudo: Privileged command touching sudoers or credential databases.</description>
+    <mitre><id>T1548.003</id><id>T1098</id></mitre>
+    <group>sudo,privilege_escalation,</group>
+  </rule>
+
+  <rule id="100209" level="6">
+    <if_sid>5303</if_sid>
+    <user>^root$</user>
+    <description>su: User switched to root.</description>
+    <mitre><id>T1078.003</id></mitre>
+    <group>su,privilege_escalation,</group>
+  </rule>
+
+</group>

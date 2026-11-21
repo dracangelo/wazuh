@@ -1,0 +1,16 @@
+title: Crontab Modification for Persistence
+id: 2a9f5c18-7e3d-4b61-8c4a-9d2e1f0a3b57
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/crontab'
+      - '/crontab'
+    CommandLine|contains:
+      - ' -e'
+      - ' -l'
+      - ' -r'
+  condition: selection
+level: medium
+tags: [attack.persistence, attack.t1053.003]

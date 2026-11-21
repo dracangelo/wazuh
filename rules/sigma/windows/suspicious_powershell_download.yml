@@ -1,0 +1,19 @@
+title: PowerShell Download Cradle
+id: b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e
+status: experimental
+logsource: {category: process_creation, product: windows}
+detection:
+  selection:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains:
+      - 'DownloadString'
+      - 'DownloadFile'
+      - 'Invoke-WebRequest'
+      - 'IWR '
+      - 'wget '
+      - 'Net.WebClient'
+  condition: selection
+level: high
+tags: [attack.execution, attack.command_and_control, attack.t1059.001, attack.t1105]

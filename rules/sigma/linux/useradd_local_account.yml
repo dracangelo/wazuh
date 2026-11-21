@@ -1,0 +1,10 @@
+title: Local Account Created via useradd
+id: 6f0c1a52-6a8f-4a7e-9a52-0d1e8b6d0a01
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith: ['/useradd', '/adduser']
+  condition: selection
+level: medium
+tags: [attack.persistence, attack.t1136.001]

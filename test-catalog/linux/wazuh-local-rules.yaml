@@ -1,0 +1,418 @@
+# One test per custom rule in rules/wazuh/linux. Rules needing auditd/FIM assume the
+# agent-config/ snippets are installed. Negative tests prove thresholds don't over-trigger.
+tests:
+- id: LIN-R100401
+  name: Binary executed from /tmp
+  technique: T1059.004
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - exec_tmp
+  expected:
+    rule_ids:
+    - '100401'
+    timeout_seconds: 60
+- id: LIN-R100401-NEG
+  name: Normal binary exec must not alert
+  technique: T1059.004
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - benign_exec
+  expected:
+    rule_ids:
+    - '100401'
+    timeout_seconds: 45
+  negative: true
+- id: LIN-R100402
+  name: curl writing to /tmp
+  technique: T1105
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - download_tmp
+    allow_nonzero: true
+  expected:
+    rule_ids:
+    - '100402'
+    timeout_seconds: 60
+- id: LIN-R100404
+  name: ncat -e command execution flag
+  technique: T1059.004
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - nc_exec
+    allow_nonzero: true
+  expected:
+    rule_ids:
+    - '100404'
+    timeout_seconds: 60
+- id: LIN-R100405
+  name: Offensive tool (nmap) executed
+  technique: T1046
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - scanner
+  expected:
+    rule_ids:
+    - '100405'
+    timeout_seconds: 60
+- id: LIN-R100406
+  name: find -perm -4000 SUID enumeration
+  technique: T1083
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - find_suid
+  expected:
+    rule_ids:
+    - '100406'
+    timeout_seconds: 60
+- id: LIN-R100407
+  name: History file removed
+  technique: T1070.003
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - history_tamper
+  expected:
+    rule_ids:
+    - '100407'
+    timeout_seconds: 60
+- id: LIN-R100409
+  name: Burst of recon commands
+  technique: T1082
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - recon_burst
+  expected:
+    rule_ids:
+    - '100409'
+    timeout_seconds: 90
+- id: LIN-R100409-NEG
+  name: Three recon commands must not alert
+  technique: T1082
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - recon_few
+  expected:
+    rule_ids:
+    - '100409'
+    timeout_seconds: 90
+  negative: true
+- id: LIN-R100421
+  name: chmod u+s on a file
+  technique: T1548.001
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - suid_chmod
+  expected:
+    rule_ids:
+    - '100421'
+    timeout_seconds: 60
+- id: LIN-R100425
+  name: cat /etc/shadow as root
+  technique: T1003.008
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - shadow_read
+  expected:
+    rule_ids:
+    - '100425'
+    timeout_seconds: 60
+- id: LIN-R100426
+  name: File removed from /var/log
+  technique: T1070.002
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - log_delete
+  expected:
+    rule_ids:
+    - '100426'
+    timeout_seconds: 60
+- id: LIN-R100301
+  name: User added to sudo/wheel group
+  technique: T1098
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - priv_group
+  expected:
+    rule_ids:
+    - '100301'
+    timeout_seconds: 60
+- id: LIN-R100302
+  name: User crontab replaced
+  technique: T1053.003
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - cron_edit
+  expected:
+    rule_ids:
+    - '100302'
+    timeout_seconds: 60
+- id: LIN-R100311
+  name: sudoers.d file created
+  technique: T1548.003
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - fim_sudoers
+  expected:
+    rule_ids:
+    - '100311'
+    timeout_seconds: 120
+- id: LIN-R100313
+  name: authorized_keys modified
+  technique: T1098.004
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - fim_authkeys
+  expected:
+    rule_ids:
+    - '100313'
+    timeout_seconds: 120
+- id: LIN-R100314
+  name: cron.d file created
+  technique: T1053.003
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - fim_cron
+  expected:
+    rule_ids:
+    - '100314'
+    timeout_seconds: 120
+- id: LIN-R100315
+  name: systemd unit created
+  technique: T1543.002
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - fim_systemd
+  expected:
+    rule_ids:
+    - '100315'
+    timeout_seconds: 120
+- id: LIN-R100600
+  name: Scanner user agent in access log
+  technique: T1595.002
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  - web
+  simulation:
+    script: shellshock/web_probes.sh
+    interpreter: bash
+    run_from: local
+    args:
+    - '{target_host}'
+    - '80'
+    - scanner
+  expected:
+    rule_ids:
+    - '100600'
+    timeout_seconds: 60
+- id: LIN-R100602
+  name: Path traversal request
+  technique: T1190
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  - web
+  simulation:
+    script: shellshock/web_probes.sh
+    interpreter: bash
+    run_from: local
+    args:
+    - '{target_host}'
+    - '80'
+    - traversal
+  expected:
+    rule_ids:
+    - '100602'
+    timeout_seconds: 60
+- id: LIN-R100605
+  name: SQL injection pattern
+  technique: T1190
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  - web
+  simulation:
+    script: shellshock/web_probes.sh
+    interpreter: bash
+    run_from: local
+    args:
+    - '{target_host}'
+    - '80'
+    - sqli
+  expected:
+    rule_ids:
+    - '100605'
+    timeout_seconds: 60
+- id: LIN-R100603
+  name: Web shell style request
+  technique: T1505.003
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  - web
+  simulation:
+    script: shellshock/web_probes.sh
+    interpreter: bash
+    run_from: local
+    args:
+    - '{target_host}'
+    - '80'
+    - webshell
+  expected:
+    rule_ids:
+    - '100603'
+    timeout_seconds: 60
+- id: LIN-R100604
+  name: Log4Shell JNDI string
+  technique: T1190
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  - web
+  simulation:
+    script: shellshock/web_probes.sh
+    interpreter: bash
+    run_from: local
+    args:
+    - '{target_host}'
+    - '80'
+    - log4shell
+  expected:
+    rule_ids:
+    - '100604'
+    timeout_seconds: 60

@@ -1,0 +1,15 @@
+title: Local User Account Modification
+id: 5a1d7e49-2c8f-4b6a-9e3d-1f0a8c5b7d24
+status: experimental
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/usermod'
+      - '/passwd'
+      - '/chage'
+      - '/groupadd'
+      - '/groupmod'
+  condition: selection
+level: medium
+tags: [attack.persistence, attack.t1136.001, attack.t1098]
