@@ -1,0 +1,27 @@
+# Python virtual environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+
+# Local configuration with credentials or host details
+.env
+.env.*
+!.env.example
+
+# Generated run state: database, evidence, shareable reports.
+# Keep the directories (and their .gitkeep) so a fresh checkout has the documented layout.
+evidence/*
+!evidence/.gitkeep
+reports/*
+!reports/.gitkeep
+*.sqlite
+*.sqlite3
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/

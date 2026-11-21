@@ -46,7 +46,9 @@ def test_syslog_rules():
 
 
 def test_fim_paths_and_perms():
-    f = lambda rid: R[rid]["fields"]["file"]
+    def f(rid):
+        return R[rid]["fields"]["file"]
+
     assert re.search(f(100310), "/etc/shadow") and not re.search(f(100310), "/etc/shadowx")
     assert re.search(f(100311), "/etc/sudoers.d/dv_test") and re.search(f(100313), "/home/a/.ssh/authorized_keys")
     assert re.search(f(100314), "/etc/cron.d/dv_test") and re.search(f(100315), "/etc/systemd/system/x.service")

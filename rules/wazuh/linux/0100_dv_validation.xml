@@ -18,22 +18,22 @@
 
   <rule id="100100" level="10">
     <if_sid>554</if_sid>
-    <field name="file" type="pcre2">(^|/)dv_fim_test\.txt$</field>
-    <description>Marker: dv_fim_test.txt created in a monitored directory.</description>
+    <field name="file" type="pcre2">(^|/)dv_fim_test[A-Za-z0-9_-]*\.txt$</field>
+    <description>Marker: dv_fim_test*.txt created in a monitored directory.</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 
   <rule id="100101" level="10">
     <if_sid>550</if_sid>
-    <field name="file" type="pcre2">(^|/)dv_fim_test\.txt$</field>
-    <description>Marker: dv_fim_test.txt modified in a monitored directory.</description>
+    <field name="file" type="pcre2">(^|/)dv_fim_test[A-Za-z0-9_-]*\.txt$</field>
+    <description>Marker: dv_fim_test*.txt modified in a monitored directory.</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 
   <rule id="100102" level="10">
     <if_sid>553</if_sid>
-    <field name="file" type="pcre2">(^|/)dv_fim_test\.txt$</field>
-    <description>Marker: dv_fim_test.txt deleted from a monitored directory.</description>
+    <field name="file" type="pcre2">(^|/)dv_fim_test[A-Za-z0-9_-]*\.txt$</field>
+    <description>Marker: dv_fim_test*.txt deleted from a monitored directory.</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 
@@ -43,7 +43,7 @@
     <if_sid>100102</if_sid>
     <if_matched_sid>100101</if_matched_sid>
     <same_field>file</same_field>
-    <description>Marker: dv_fim_test.txt full lifecycle observed (create, modify, delete).</description>
+    <description>Marker: dv_fim_test*.txt full lifecycle observed (create, modify, delete).</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 

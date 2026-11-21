@@ -40,14 +40,16 @@ class TestCase:
     target: str            # key in environments.yaml
     expected: Expected
     negative: bool = False  # True => `expected` describes alerts that must NOT fire
+    risk: str = "medium"    # low | medium | high; high needs an explicit destructive opt-in
     tags: list[str] = field(default_factory=list)
     simulation: dict[str, Any] = field(default_factory=dict)
     path: Path | None = None
 
     REQUIRED = ("id", "name", "technique", "platform", "source", "target")
+    RISK_LEVELS = ("low", "medium", "high")
 
     @classmethod
-    def from_dict(cls, d: dict, path: Path | None = None) -> "TestCase":
+    def from_dict(cls, d: dict, path: Path | None = None) -> TestCase:
         missing = [k for k in cls.REQUIRED if k not in d]
         if missing:
             raise ValueError(f"{path or ''} test {d.get('id', '?')}: missing {missing}")
@@ -67,9 +69,12 @@ class TestCase:
         negative = bool(d.get("negative", False))
         if not negative and not (exp.rule_ids or exp.rule_groups or exp.mitre_ids):
             raise ValueError(f"{d['id']}: positive test needs rule_ids, rule_groups or mitre_ids")
+        risk = str(d.get("risk", "medium")).lower()
+        if risk not in cls.RISK_LEVELS:
+            raise ValueError(f"{d['id']}: risk must be one of {cls.RISK_LEVELS}, got {risk!r}")
         return cls(
             id=d["id"], name=d["name"], technique=d["technique"], platform=d["platform"],
-            source=d["source"], target=d["target"], expected=exp, negative=negative,
+            source=d["source"], target=d["target"], expected=exp, negative=negative, risk=risk,
             tags=list(d.get("tags", [])), simulation=dict(d.get("simulation", {})), path=path,
         )
 
@@ -83,6 +88,11 @@ class ExecutionResult:
     stdout: str = ""
     stderr: str = ""
     error: str | None = None
+    status: str = "ok"  # ok | command_failed | timeout | connection_failed | setup_failed
+
+    @property
+    def duration_seconds(self) -> float:
+        return max(0.0, (self.finished_at - self.started_at).total_seconds())
 
 
 @dataclass
@@ -121,6 +131,7 @@ class TestResult:
             "technique": self.test.technique,
             "platform": self.test.platform,
             "negative": self.test.negative,
+            "risk": self.test.risk,
             "verdict": self.verdict.value,
             "latency_seconds": self.latency_seconds,
             "matched_rule_ids": sorted({a.rule_id for a in self.matched_alerts}),

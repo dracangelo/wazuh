@@ -13,7 +13,7 @@ jobs:
       - run: dv lint            # catalog schema + duplicate ids
       - run: dv rules-check     # Wazuh rule XML lint (ids, levels, regexes, parents)
       - run: pytest             # unit + integration (no live Wazuh needed)
-      - run: bash -n ../custom-simulations/*/*.sh   # shell syntax check
+      - run: bash -n ../custom-simulations/*/*.sh ../custom-simulations/lib/*.sh   # shell syntax check
   # Live validation needs a lab Wazuh + agents; run it on a self-hosted runner:
   # live:
   #   runs-on: [self-hosted, detection-lab]

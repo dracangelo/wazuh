@@ -13,14 +13,15 @@ from pathlib import Path
 import yaml
 
 from ..models import ExecutionResult, TestCase
-from .base import Adapter, Target, run_script
+from .base import Adapter, Target, new_exec_id, run_script
 
 _ARG = re.compile(r"#\{([^}]+)\}")
 
 
 class AtomicAdapter(Adapter):
-    def __init__(self, atomic_dir: Path):
+    def __init__(self, atomic_dir: Path, default_timeout: int = 300):
         self.atomic_dir = atomic_dir
+        self.default_timeout = int(default_timeout)
 
     def _load(self, platform: str, technique: str) -> list[dict]:
         path = self.atomic_dir / platform / technique / f"{technique}.yaml"
@@ -41,9 +42,11 @@ class AtomicAdapter(Adapter):
         raise KeyError(f"atomic test GUID {selector} not found")
 
     @staticmethod
-    def _render(text: str, defaults: dict | None, overrides: dict | None) -> str:
+    def _render(text: str, defaults: dict | None, overrides: dict | None,
+                extra: dict | None = None) -> str:
         values = {k: str((v or {}).get("default", "")) for k, v in (defaults or {}).items()}
         values.update({k: str(v) for k, v in (overrides or {}).items()})
+        values.update({k: str(v) for k, v in (extra or {}).items()})
         return _ARG.sub(lambda m: values.get(m.group(1), m.group(0)), text)
 
     def run(self, test: TestCase, target: Target) -> ExecutionResult:
@@ -51,13 +54,16 @@ class AtomicAdapter(Adapter):
         technique = sim.get("technique", test.technique)
         atomic = self._pick(self._load(test.platform, technique), sim.get("test", 1))
         ex = atomic["executor"]
-        interp, args = ex["name"], sim.get("args", {})
+        interp = ex["name"]
+        exec_id = new_exec_id()
+        extra = {"dv_exec_id": exec_id}
+        args = {k: str(v).replace("{dv_exec_id}", exec_id) for k, v in (sim.get("args") or {}).items()}
         defaults = atomic.get("input_arguments")
-        timeout = int(sim.get("timeout", 300))
+        timeout = int(sim.get("timeout", self.default_timeout))
         try:
-            return run_script(target, interp, self._render(ex["command"], defaults, args),
+            return run_script(target, interp, self._render(ex["command"], defaults, args, extra),
                               timeout=timeout, allow_nonzero=bool(sim.get("allow_nonzero", False)))
         finally:
             if ex.get("cleanup_command"):
-                run_script(target, interp, self._render(ex["cleanup_command"], defaults, args),
+                run_script(target, interp, self._render(ex["cleanup_command"], defaults, args, extra),
                            timeout=timeout, allow_nonzero=True)

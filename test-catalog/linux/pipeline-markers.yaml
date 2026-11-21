@@ -2,7 +2,7 @@
 # Run first: dv run --tag smoke --strict
 tests:
   - id: LIN-MARK-FIM
-    name: FIM lifecycle marker (create, modify, delete dv_fim_test.txt)
+    name: FIM lifecycle marker (create, modify, delete a unique dv_fim_test*.txt)
     technique: MARKER
     platform: linux
     source: custom

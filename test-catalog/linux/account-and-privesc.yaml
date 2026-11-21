@@ -6,7 +6,8 @@ tests:
     source: atomic
     target: lab-linux-01
     tags: [regression, atomic]
-    simulation: {test: 1}
+    risk: high                # creates a local account; needs --allow-destructive
+    simulation: {test: 1, args: {username: "dv_atomic_{dv_exec_id}"}}
     expected:
       rule_ids: ["5902"]        # new user added
       timeout_seconds: 60

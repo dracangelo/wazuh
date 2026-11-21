@@ -19,7 +19,7 @@ def write(run: dict, rows: list[dict], metrics: dict, path: Path) -> Path:
     html = f"""<!doctype html><html><head><meta charset="utf-8"><title>Detection validation run {run['id']}</title>
 <style>body{{font:14px system-ui;margin:2rem}}table{{border-collapse:collapse;width:100%}}
 td,th{{border:1px solid #d0d7de;padding:6px 8px;text-align:left}}th{{background:#f6f8fa}}</style></head><body>
-<h1>Detection validation – run {run['id']}</h1>
+<h1>Detection validation - run {run['id']}</h1>
 <p>Started {escape(str(run.get('started_at')))} · commit {escape(str(run.get('git_sha') or 'n/a'))}</p>
 <p><b>Detection rate:</b> {_pct(metrics['detection_rate'])} · <b>Precision:</b> {_pct(metrics['precision'])} ·
 <b>FP rate:</b> {_pct(metrics['false_positive_rate'])} · <b>MTTD:</b> {metrics['mean_time_to_detect_s']}s ·

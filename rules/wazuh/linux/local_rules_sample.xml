@@ -1,9 +1,0 @@
-<!-- Copy into /var/ossec/etc/rules/local_rules.xml on the manager, then restart. -->
-<group name="local,syscheck,dv_validation,">
-  <rule id="100100" level="10">
-    <if_sid>554</if_sid>
-    <field name="file">dv_fim_test.txt</field>
-    <description>Validation marker file created in monitored directory</description>
-    <mitre><id>T1565.001</id></mitre>
-  </rule>
-</group>

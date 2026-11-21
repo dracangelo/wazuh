@@ -1,5 +1,8 @@
 # Lab targets only. Never point this at production systems.
 # transport: ssh (Linux, or Windows with OpenSSH) | local
+# Every target is checked against the central safety gate before use: SSH hosts must resolve into
+# safety.allowed_cidrs (settings.yaml), hostnames must be listed in safety.allowed_hostnames, and
+# the process needs DV_LAB_ACK=1. See README "Safety model".
 targets:
   local:
     platform: linux

@@ -12,8 +12,26 @@ wazuh:
     index_pattern: "wazuh-alerts-4.x-*"
     file_path: /var/ossec/logs/alerts/alerts.json   # used when source: file
 
+# Central lab safety gate (see framework/src/validator/safety.py).
+# Acknowledge the lab only on a disposable test environment: set lab_acknowledged: true here or
+# export DV_LAB_ACK=1 for the process. There is no per-target override flag.
+safety:
+  lab_acknowledged: false
+  allowed_cidrs:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+    - 127.0.0.0/8
+    - ::1/128
+    - fc00::/7
+    - fe80::/10
+  allowed_hostnames: []        # hostnames that are explicitly approved as lab targets
+  allow_local_targets: true    # "transport: local" targets run on the runner itself
+  allow_destructive: false     # equivalent to `dv run --allow-destructive`
+
 evaluation:
   default_timeout_seconds: 120
+  command_timeout_seconds: 300   # hard limit for one local/SSH simulation command
   poll_interval_seconds: 5
   clock_skew_seconds: 5
 

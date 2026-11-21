@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Callable
 
 import yaml
 
@@ -13,6 +14,9 @@ from .collectors.wazuh_alerts import AlertCollector
 from .evaluation.evaluator import evaluate
 from .evaluation.matcher import satisfied
 from .models import ExecutionResult, TestCase, TestResult, Verdict
+from .safety import SafetyPolicy, blocked_reason
+
+LOG = logging.getLogger("validator.orchestrator")
 
 
 def load_catalog(directory: Path) -> list[TestCase]:
@@ -20,7 +24,7 @@ def load_catalog(directory: Path) -> list[TestCase]:
     tests, seen = [], set()
     for path in sorted(Path(directory).rglob("*.y*ml")):
         doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        for item in (doc["tests"] if "tests" in doc else [doc]):
+        for item in doc.get("tests", [doc]):
             t = TestCase.from_dict(item, path)
             if t.id in seen:
                 raise ValueError(f"duplicate test id {t.id} ({path})")
@@ -39,14 +43,14 @@ def select(tests, ids=None, platform=None, technique=None, tag=None, source=None
 class Orchestrator:
     def __init__(self, settings: dict, targets: dict[str, Target], adapters: dict[str, Adapter],
                  collector: AlertCollector, repo, evidence_dir: Path,
-                 sleep: Callable[[float], None] = time.sleep):
-        self.cfg = settings["evaluation"]
+                 sleep: Callable[[float], None] = time.sleep, policy: SafetyPolicy | None = None):
+        self.cfg = settings.get("evaluation", {})
         self.targets, self.adapters, self.collector = targets, adapters, collector
         self.repo, self.evidence_dir, self.sleep = repo, Path(evidence_dir), sleep
-        self.catalog_loader = load_catalog
+        self.policy = policy if policy is not None else SafetyPolicy()
 
-    def load_catalog(self, directory: Path) -> list[TestCase]:
-        return self.catalog_loader(directory)
+    def blocked_reason(self, test: TestCase) -> str | None:
+        return blocked_reason(test, self.targets, self.policy)
 
     def _error(self, test: TestCase, msg: str, execution: ExecutionResult | None = None) -> TestResult:
         return TestResult(test, Verdict.ERROR, execution, error=msg)
@@ -54,16 +58,21 @@ class Orchestrator:
     def run_test(self, test: TestCase) -> TestResult:
         target = self.targets.get(test.target)
         adapter = self.adapters.get(test.source)
-        if target is None:
-            return self._error(test, f"unknown target '{test.target}'")
+        # Re-check centrally even though run() preflights: no execution path skips the gate.
+        blocked = self.blocked_reason(test)
+        if blocked:
+            LOG.warning("blocked test=%s reason=%s", test.id, blocked)
+            return self._error(test, blocked)
         if adapter is None:
             return self._error(test, f"no adapter for source '{test.source}'")
         try:
             execution = adapter.run(test, target)
-        except Exception as exc:
+        except Exception as exc:  # an adapter bug must never look like a detection miss
+            LOG.exception("adapter failure test=%s", test.id)
             return self._error(test, f"{type(exc).__name__}: {exc}")
         if not execution.success:
-            return self._error(test, execution.error or "simulation failed", execution)
+            detail = execution.error or "simulation failed"
+            return self._error(test, f"{execution.status}: {detail}", execution)
 
         skew = timedelta(seconds=self.cfg.get("clock_skew_seconds", 5))
         timeout = test.expected.timeout_seconds or self.cfg.get("default_timeout_seconds", 120)
@@ -86,9 +95,16 @@ class Orchestrator:
         d.mkdir(parents=True, exist_ok=True)
         ex = result.execution
         doc = {
-            "test_id": result.test.id, "verdict": result.verdict.value, "error": result.error,
+            "run_id": run_id,
+            "test_id": result.test.id,
+            "target": result.test.target,
+            "risk": result.test.risk,
+            "verdict": result.verdict.value,
+            "error": result.error,
             "execution": None if ex is None else {
+                "status": ex.status,
                 "started_at": ex.started_at.isoformat(), "finished_at": ex.finished_at.isoformat(),
+                "duration_seconds": round(ex.duration_seconds, 3),
                 "exit_code": ex.exit_code, "stdout": ex.stdout[-4000:], "stderr": ex.stderr[-4000:]},
             "matched_alerts": [a.raw for a in result.matched_alerts],
             "window_alerts": [a.raw for a in result.all_alerts[:200]],
@@ -96,9 +112,11 @@ class Orchestrator:
         (d / f"{result.test.id}.json").write_text(json.dumps(doc, indent=2, default=str), encoding="utf-8")
 
     def run(self, tests: list[TestCase], label: str | None = None, progress=print) -> int:
+        # Preflight every test first so an unsafe target stops the run before any command executes.
+        blocked = {t.id: reason for t in tests if (reason := self.blocked_reason(t))}
         run_id = self.repo.create_run(label)
         for i, test in enumerate(tests, 1):
-            result = self.run_test(test)
+            result = self._error(test, blocked[test.id]) if test.id in blocked else self.run_test(test)
             self.repo.save_result(run_id, result.to_row())
             self._write_evidence(run_id, result)
             progress(f"[{i}/{len(tests)}] {test.id:<22} {result.verdict.value:<5} {result.error or ''}")

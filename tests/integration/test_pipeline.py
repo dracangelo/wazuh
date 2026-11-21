@@ -6,6 +6,7 @@ from validator.adapters.base import Adapter, Target
 from validator.collectors.wazuh_alerts import FileAlertCollector
 from validator.models import ExecutionResult, Expected, TestCase
 from validator.orchestrator import Orchestrator
+from validator.safety import SafetyPolicy
 from validator.storage.database import connect
 from validator.storage.repository import RunRepository
 
@@ -29,7 +30,8 @@ def test_pipeline(tmp_path):
     repo = RunRepository(connect(tmp_path / "db.sqlite"))
     orch = Orchestrator({"evaluation": {"default_timeout_seconds": 1, "poll_interval_seconds": 0, "clock_skew_seconds": 5}},
                         {"lab": Target("lab", "linux", agent_name="lab")}, {"custom": FakeAdapter(alerts)},
-                        FileAlertCollector(alerts), repo, tmp_path / "evidence", sleep=lambda s: None)
+                        FileAlertCollector(alerts), repo, tmp_path / "evidence", sleep=lambda s: None,
+                        policy=SafetyPolicy(lab_acknowledged=True))
     tests = [TestCase("pos", "p", "T1110", "linux", "custom", "lab", Expected(rule_ids=["5712"], timeout_seconds=1)),
              TestCase("neg", "n", "T1110", "linux", "custom", "lab", Expected(rule_ids=["9999"], timeout_seconds=1),
                       negative=True)]

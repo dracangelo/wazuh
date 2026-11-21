@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 import shlex
 import subprocess
 from abc import ABC, abstractmethod
@@ -28,7 +29,7 @@ class Target:
     key_file: str | None = None
 
     @classmethod
-    def from_config(cls, name: str, cfg: dict) -> "Target":
+    def from_config(cls, name: str, cfg: dict) -> Target:
         return cls(name=name, platform=cfg["platform"], transport=cfg.get("transport", "local"),
                    agent_name=cfg.get("agent_name", name), host=cfg.get("host"),
                    port=int(cfg.get("port", 22)), user=cfg.get("user"), key_file=cfg.get("key_file"))
@@ -36,6 +37,11 @@ class Target:
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def new_exec_id() -> str:
+    """Short unique id for one simulation execution (filesystem- and username-safe, 18 chars)."""
+    return f"dv{_now():%y%m%d%H%M%S}{secrets.token_hex(2)}"
 
 
 def build_command(target: Target, argv: list[str]) -> list[str]:
@@ -48,27 +54,49 @@ def build_command(target: Target, argv: list[str]) -> list[str]:
                "-o", "StrictHostKeyChecking=accept-new"]
         if target.key_file:
             cmd += ["-i", str(Path(target.key_file).expanduser())]
-        return cmd + [f"{target.user}@{target.host}", " ".join(shlex.quote(a) for a in argv)]
+        return [*cmd, f"{target.user}@{target.host}", " ".join(shlex.quote(a) for a in argv)]
     raise ValueError(f"unsupported transport '{target.transport}'")
+
+
+def _text(value) -> str:
+    if value is None:
+        return ""
+    return value.decode("utf-8", "replace") if isinstance(value, bytes) else str(value)
 
 
 def run_script(target: Target, interpreter: str, script: str, args: list[str] | None = None,
                timeout: int = 300, allow_nonzero: bool = False) -> ExecutionResult:
-    """Feed `script` to an interpreter's stdin, locally or over SSH (avoids quoting issues)."""
+    """Feed `script` to an interpreter's stdin, locally or over SSH (avoids quoting issues).
+
+    Never raises for command/transport problems: the outcome is classified in `status` so a
+    simulation failure can be reported as ERROR instead of a detection miss.
+    """
     if interpreter not in INTERPRETERS:
         raise ValueError(f"unsupported interpreter '{interpreter}' (use {sorted(INTERPRETERS)})")
     argv = list(INTERPRETERS[interpreter])
     if args and interpreter in ("sh", "bash"):
-        argv += ["--", *args]
-    cmd = build_command(target, argv)
+        argv = [*argv, "--", *args]
     started = _now()
     try:
-        p = subprocess.run(cmd, input=script, capture_output=True, text=True, timeout=timeout)
-        ok = p.returncode == 0 or allow_nonzero
-        return ExecutionResult(started, _now(), ok, p.returncode, p.stdout, p.stderr,
-                               None if ok else f"exit code {p.returncode}")
-    except subprocess.TimeoutExpired:
-        return ExecutionResult(started, _now(), False, None, error=f"timeout after {timeout}s")
+        cmd = build_command(target, argv)
+    except ValueError as exc:
+        return ExecutionResult(started, _now(), False, error=str(exc), status="setup_failed")
+    try:
+        p = subprocess.run(cmd, check=False, input=script, capture_output=True, text=True,
+                           timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        return ExecutionResult(started, _now(), False, None, _text(exc.stdout), _text(exc.stderr),
+                               f"timeout after {timeout}s", status="timeout")
+    except (FileNotFoundError, PermissionError) as exc:
+        return ExecutionResult(started, _now(), False, error=f"transport unavailable: {exc}",
+                               status="connection_failed")
+    except OSError as exc:
+        return ExecutionResult(started, _now(), False, error=f"transport error: {exc}",
+                               status="connection_failed")
+    ok = p.returncode == 0 or allow_nonzero
+    return ExecutionResult(started, _now(), ok, p.returncode, p.stdout, p.stderr,
+                           None if ok else f"exit code {p.returncode}",
+                           status="ok" if ok else "command_failed")
 
 
 class Adapter(ABC):

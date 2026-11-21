@@ -9,6 +9,11 @@
 | `0500_dv_defense_evasion.xml` | 100500-100503 | Logging/audit/firewall stopped, SELinux permissive, audit disabled | auditd + syslog |
 | `0600_dv_web.xml` | 100600-100605 | Scanners, Shellshock, traversal, web shell, Log4Shell, SQLi | apache/nginx access log |
 
+## Rule IDs
+IDs 100100-100699 are reserved for the Linux rule set in this directory. A rule ID must be unique
+across every deployed file; `dv rules-check` enforces that (and runs in CI). Non-deployed reference
+XML belongs in `rules/wazuh/examples/` (named `*.xml.example` so it is not scanned as deployable).
+
 ## Deploy
 1. Manager: copy `0*_dv_*.xml` to `/var/ossec/etc/rules/`, `chown wazuh:wazuh`, run `/var/ossec/bin/wazuh-logtest` to try samples, then restart the manager.
 2. Agents: merge `agent-config/ossec_agent_snippet.xml`; install `agent-config/audit/99-dv.rules` into `/etc/audit/rules.d/` and run `augenrules --load`.

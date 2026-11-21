@@ -1,0 +1,19 @@
+<!--
+  Reference sample only: this file is NOT deployed and is not part of `dv rules-check`.
+  It lives outside rules/wazuh/linux/ so its rule ID cannot collide with the deployed rule set.
+
+  Rule ID allocation for this project:
+    100100-100699  rules/wazuh/linux/*.xml (this repository)
+    100700-100999  rules/wazuh/windows/*.xml (this repository)
+    Every deployed rule ID must be unique across all deployed files; CI enforces that with
+    `dv rules-check`. When you copy this sample into /var/ossec/etc/rules/local_rules.xml on a
+    lab manager, give it an ID from a range you own.
+-->
+<group name="local,syscheck,dv_validation,">
+  <rule id="100900" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(^|/)dv_fim_test[A-Za-z0-9_-]*\.txt$</field>
+    <description>Validation marker file created in a monitored directory</description>
+    <mitre><id>T1565.001</id></mitre>
+  </rule>
+</group>

@@ -3,7 +3,7 @@ from pathlib import Path
 
 def write(run: dict, rows: list[dict], metrics: dict, path: Path) -> Path:
     try:
-        from reportlab.lib.pagesizes import landscape, A4
+        from reportlab.lib.pagesizes import A4, landscape
         from reportlab.lib.styles import getSampleStyleSheet
         from reportlab.platypus import Paragraph, SimpleDocTemplate, Table
     except ImportError as exc:

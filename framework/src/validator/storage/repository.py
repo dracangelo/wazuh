@@ -53,9 +53,11 @@ class RunRepository:
     def latest_run_id(self, label: str | None = None, before: int | None = None) -> int | None:
         q, p = "SELECT id FROM runs WHERE finished_at IS NOT NULL", []
         if label:
-            q += " AND label=?"; p.append(label)
+            q += " AND label=?"
+            p.append(label)
         if before:
-            q += " AND id<?"; p.append(before)
+            q += " AND id<?"
+            p.append(before)
         r = self.conn.execute(q + " ORDER BY id DESC LIMIT 1", p).fetchone()
         return r["id"] if r else None
 
