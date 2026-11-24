@@ -96,4 +96,20 @@
     <mitre><id>T1562.002</id></mitre>
   </rule>
 
+  <rule id="100943" level="12">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\bwevtutil(\.exe)?\s+(cl|clear-log)\s+\S+</field>
+    <description>Windows Event Log cleared via wevtutil command line.</description>
+    <mitre><id>T1070.001</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100944" level="10">
+    <if_sid>100712</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\bnetsh(\.exe)?\s+advfirewall\s+set\s+(allprofiles|currentprofile|domainprofile|privateprofile|publicprofile)\s+state\s+off\b</field>
+    <description>Windows Firewall disabled via netsh advfirewall.</description>
+    <mitre><id>T1562.004</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
 </group>

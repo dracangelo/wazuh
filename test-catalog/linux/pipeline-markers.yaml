@@ -10,6 +10,7 @@ tests:
     tags: [smoke, marker, regression]
     simulation: {script: file-integrity/fim_touch.sh, interpreter: bash}
     expected:
+      correlation: exec_id
       rule_ids: ["100100", "100101", "100102", "100103"]
       require_all: true
       timeout_seconds: 120

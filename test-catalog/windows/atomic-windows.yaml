@@ -1,0 +1,64 @@
+# Atomic Red Team tests copied for Windows. Every atomic is read-only or cleans up after itself.
+tests:
+  - id: WIN-ATOMIC-T1087-001
+    name: Atomic - local account enumeration
+    technique: T1087.001
+    platform: windows
+    source: atomic
+    target: lab-win-01
+    tags: [atomic]
+    simulation: {test: 1}
+    expected: {rule_ids: ["100873"], timeout_seconds: 90}
+
+  - id: WIN-ATOMIC-T1059-001
+    name: Atomic - benign encoded PowerShell command
+    technique: T1059.001
+    platform: windows
+    source: atomic
+    target: lab-win-01
+    tags: [atomic]
+    simulation: {test: 1}
+    expected: {rule_ids: ["100856"], timeout_seconds: 90}
+
+  - id: WIN-ATOMIC-T1564-004
+    name: Atomic - alternate data stream on a temp file
+    technique: T1564.004
+    platform: windows
+    source: atomic
+    target: lab-win-01
+    tags: [atomic]
+    simulation: {test: 1}
+    expected: {rule_ids: ["100876"], timeout_seconds: 90}
+
+  - id: WIN-ATOMIC-T1070-006
+    name: Atomic - timestomp a temp file
+    technique: T1070.006
+    platform: windows
+    source: atomic
+    target: lab-win-01
+    tags: [atomic]
+    simulation: {test: 1}
+    expected: {rule_ids: ["100875"], timeout_seconds: 90}
+
+  - id: WIN-ATOMIC-T1070-001
+    name: Atomic - query event log list stays quiet
+    technique: T1070.001
+    platform: windows
+    source: atomic
+    target: lab-win-01
+    tags: [atomic]
+    simulation: {test: 1}
+    negative: true
+    expected: {rule_ids: ["100943"], timeout_seconds: 45}
+
+  - id: WIN-ATOMIC-T1046-001
+    name: Atomic - port connectivity scan via Test-NetConnection
+    technique: T1046
+    platform: windows
+    source: atomic
+    target: lab-win-01
+    tags: [atomic]
+    simulation: {test: 1}
+    expected: {rule_ids: ["100880"], timeout_seconds: 90}
+
+

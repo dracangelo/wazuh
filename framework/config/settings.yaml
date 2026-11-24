@@ -31,6 +31,21 @@ safety:
   allow_local_targets: true    # "transport: local" targets run on the runner itself
   allow_destructive: false     # equivalent to `dv run --allow-destructive`
 
+# Session-start pipeline canary (see framework/src/validator/canary.py). A benign trigger must
+# produce a known built-in alert through the same collector the tests use; if it does not, the run
+# is recorded as INCONCLUSIVE and no test verdicts are written. Adjust expected_rule_ids and the
+# target for your Wazuh build; verify the trigger once with `dv canary`.
+canary:
+  enabled: true
+  target: lab-linux-01
+  expected_rule_ids: ['5710']       # built-in sshd "Invalid user" rule
+  trigger_script: canary/pipeline_canary.sh   # relative to custom-simulations/
+  timeout_seconds: 120
+  poll_interval_seconds: 5
+  reconcile_grace_seconds: 30      # wait once for indexer lag after the manager saw the alert
+  manager_alert_file: ""           # e.g. /var/ossec/logs/alerts/alerts.json on the manager;
+                                   # empty/unreadable => manager->indexer reconciliation is skipped
+
 evaluation:
   default_timeout_seconds: 120
   command_timeout_seconds: 300   # hard limit for one local/SSH simulation command

@@ -1,0 +1,26 @@
+title: Linux Log Tampering via Log Cleared
+id: b59e97ae-7352-466b-a8e2-5217aa89c4a3
+status: test
+description: Detects deletion, truncation or overwriting of system logs under /var/log.
+references:
+  - https://attack.mitre.org/techniques/T1070/002/
+author: Antigravity Detection Team
+date: 2026/11/24
+tags:
+  - attack.t1070.002
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    CommandLine|contains:
+      - 'rm -rf /var/log'
+      - 'rm -f /var/log'
+      - '> /var/log/'
+      - ': > /var/log/'
+      - 'truncate -s 0 /var/log'
+  condition: selection
+falsepositives:
+  - Legitimate logrotate operations performed by system daemons
+level: high
+

@@ -1,0 +1,14 @@
+title: Sudo Privilege Enumeration
+id: 9aebf224-bc9f-463a-afb8-67216168544f
+status: experimental
+description: sudo -l lists the caller's permitted commands and is common during privilege discovery.
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith: '/sudo'
+    CommandLine|contains:
+      - ' -l'
+      - '--list'
+  condition: selection
+level: low
+tags: [attack.discovery, attack.privilege_escalation, attack.t1548.003]

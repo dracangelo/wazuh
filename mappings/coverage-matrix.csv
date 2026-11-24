@@ -1,21 +1,37 @@
-technique,name,tactic,tests,negative_tests,status
-T1003.008,OS Credential Dumping: /etc/passwd and /etc/shadow,credential-access,1,0,untested
-T1046,Network Service Discovery,discovery,1,0,untested
-T1053.003,Scheduled Task/Job: Cron,persistence,2,0,untested
-T1059.004,Command and Scripting Interpreter: Unix Shell,execution,3,1,untested
-T1070.002,Indicator Removal: Clear Linux or Mac System Logs,defense-evasion,1,0,untested
-T1070.003,Indicator Removal: Clear Command History,defense-evasion,1,0,untested
-T1082,System Information Discovery,discovery,2,1,untested
-T1083,File and Directory Discovery,discovery,1,0,untested
-T1098,Account Manipulation,persistence,1,0,untested
-T1098.004,Account Manipulation: SSH Authorized Keys,persistence,1,0,untested
-T1105,Ingress Tool Transfer,command-and-control,1,0,untested
-T1110.001,Brute Force: Password Guessing,credential-access,2,1,untested
-T1136.001,Create Account: Local Account,persistence,1,0,untested
-T1190,Exploit Public-Facing Application,initial-access,5,0,untested
-T1505.003,Server Software Component: Web Shell,persistence,0,0,no-test
-T1543.002,Create or Modify System Process: Systemd Service,persistence,1,0,untested
-T1548.001,Abuse Elevation Control: Setuid and Setgid,privilege-escalation,1,0,untested
-T1548.003,Abuse Elevation Control: Sudo and Sudo Caching,privilege-escalation,2,0,untested
-T1565.001,Data Manipulation: Stored Data Manipulation,impact,1,0,untested
-T1595.002,Active Scanning: Vulnerability Scanning,reconnaissance,1,0,untested
+technique,name,tactic,tests,positive_tests,negative_tests,passed,status
+T1003.008,OS Credential Dumping: /etc/passwd and /etc/shadow,credential-access,2,2,0,0,untested
+T1018,Remote System Discovery,discovery,0,0,0,0,no-test
+T1021.001,Remote Services: Remote Desktop Protocol,lateral-movement,0,0,0,0,no-test
+T1021.006,Remote Services: Windows Remote Management,lateral-movement,0,0,0,0,no-test
+T1033,System Owner/User Discovery,discovery,1,0,1,0,no-test
+T1046,Network Service Discovery,discovery,2,2,0,0,untested
+T1053.003,Scheduled Task/Job: Cron,persistence,2,2,0,0,untested
+T1059.001,Command and Scripting Interpreter: PowerShell,execution,2,2,0,0,untested
+T1059.004,Command and Scripting Interpreter: Unix Shell,execution,4,3,1,0,untested
+T1070.002,Indicator Removal: Clear Linux or Mac System Logs,defense-evasion,1,1,0,0,untested
+T1070.003,Indicator Removal: Clear Command History,defense-evasion,2,2,0,0,untested
+T1070.006,Indicator Removal: Timestomp,defense-evasion,2,2,0,0,untested
+T1082,System Information Discovery,discovery,4,2,2,0,untested
+T1083,File and Directory Discovery,discovery,1,1,0,0,untested
+T1087.001,Account Discovery: Local Account,discovery,1,1,0,0,untested
+T1087.002,Account Discovery: Domain Account,discovery,0,0,0,0,no-test
+T1098,Account Manipulation,persistence,3,3,0,0,untested
+T1098.004,Account Manipulation: SSH Authorized Keys,persistence,1,1,0,0,untested
+T1105,Ingress Tool Transfer,command-and-control,1,1,0,0,untested
+T1110.001,Brute Force: Password Guessing,credential-access,2,1,1,0,untested
+T1136.001,Create Account: Local Account,persistence,1,1,0,0,untested
+T1140,Deobfuscate/Decode Files or Information,defense-evasion,1,1,0,0,untested
+T1190,Exploit Public-Facing Application,initial-access,4,4,0,0,untested
+T1222.002,File and Directory Permissions Modification: Linux and Mac File and Directory Permissions Modification,defense-evasion,1,1,0,0,untested
+T1482,Domain Trust Discovery,discovery,1,1,0,0,untested
+T1505.003,Server Software Component: Web Shell,persistence,1,1,0,0,untested
+T1543.002,Create or Modify System Process: Systemd Service,persistence,1,1,0,0,untested
+T1546.015,Event Triggered Execution: Component Object Model Hijacking,privilege-escalation,1,1,0,0,untested
+T1548.001,Abuse Elevation Control: Setuid and Setgid,privilege-escalation,2,2,0,0,untested
+T1548.003,Abuse Elevation Control: Sudo and Sudo Caching,privilege-escalation,4,4,0,0,untested
+T1560.001,Archive Collected Data: Archive via Utility,collection,1,1,0,0,untested
+T1564.004,Hide Artifacts: NTFS File Attributes,defense-evasion,2,2,0,0,untested
+T1565.001,Data Manipulation: Stored Data Manipulation,impact,2,2,0,0,untested
+T1572,Protocol Tunneling,command-and-control,1,1,0,0,untested
+T1574.006,Hijack Execution Flow: Dynamic Linker Hijacking,privilege-escalation,2,2,0,0,untested
+T1595.002,Active Scanning: Vulnerability Scanning,reconnaissance,1,1,0,0,untested

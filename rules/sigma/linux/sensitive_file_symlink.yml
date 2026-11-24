@@ -1,0 +1,17 @@
+title: Symbolic Link to Shadow or Sudoers Files
+id: 215e6f9e-8b16-4b6b-a27c-520ec65cf1dd
+status: experimental
+description: A symbolic link targets /etc/shadow, /etc/gshadow or the sudoers configuration.
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith:
+      - '/ln'
+      - '/link'
+    CommandLine|contains:
+      - '/etc/shadow'
+      - '/etc/gshadow'
+      - '/etc/sudoers'
+  condition: selection
+level: medium
+tags: [attack.credential_access, attack.t1003.008]

@@ -1,0 +1,14 @@
+attack_technique: T1003.007
+display_name: "OS Credential Dumping: Proc Filesystem"
+atomic_tests:
+  - name: Attempt process memory dump via gcore
+    auto_generated_guid: 67da6ff1-172d-4297-b0d6-a68dee36c791
+    description: >-
+      Simulates memory dumping using gcore command syntax against self.
+    supported_platforms: [linux]
+    executor:
+      name: bash
+      elevation_required: false
+      command: |
+        gcore $$ 2>/dev/null || true
+

@@ -26,6 +26,13 @@ class Expected:
     min_level: int = 0
     timeout_seconds: int | None = None
     require_all: bool = False  # every id in rule_ids must fire (default: any one)
+    # "window": agent + time window only (weak). "exec_id": the alert must also carry this
+    # execution's unique id (in full_log, syscheck path, data.*), so another test's or the
+    # environment's alert cannot satisfy it.
+    correlation: str = "window"
+    shared_evidence: bool = False  # may reuse an alert another test already claimed
+
+    CORRELATIONS = ("window", "exec_id")
 
 
 @dataclass
@@ -63,7 +70,12 @@ class TestCase:
             min_level=int(e.get("min_level", 0)),
             timeout_seconds=e.get("timeout_seconds"),
             require_all=bool(e.get("require_all", False)),
+            correlation=str(e.get("correlation", "window")),
+            shared_evidence=bool(e.get("shared_evidence", False)),
         )
+        if exp.correlation not in Expected.CORRELATIONS:
+            raise ValueError(f"{d['id']}: expected.correlation must be one of {Expected.CORRELATIONS}, "
+                             f"got {exp.correlation!r}")
         if exp.require_all and len(exp.rule_ids) < 2:
             raise ValueError(f"{d['id']}: require_all needs at least two rule_ids")
         negative = bool(d.get("negative", False))
@@ -89,6 +101,7 @@ class ExecutionResult:
     stderr: str = ""
     error: str | None = None
     status: str = "ok"  # ok | command_failed | timeout | connection_failed | setup_failed
+    exec_id: str | None = None  # unique id of this execution (embedded in resource names)
 
     @property
     def duration_seconds(self) -> float:
@@ -119,12 +132,15 @@ class TestResult:
     all_alerts: list[Alert] = field(default_factory=list)
     latency_seconds: float | None = None
     error: str | None = None
+    uncorrelated_alerts: list[Alert] = field(default_factory=list)  # matched the rule, not the exec id
+    collection: dict | None = None  # pages fetched, alert count, truncation of the evidence window
 
     @property
     def passed(self) -> bool:
         return self.verdict in PASSING
 
     def to_row(self) -> dict:
+        from .fingerprint import definition_hash
         return {
             "test_id": self.test.id,
             "name": self.test.name,
@@ -135,5 +151,8 @@ class TestResult:
             "verdict": self.verdict.value,
             "latency_seconds": self.latency_seconds,
             "matched_rule_ids": sorted({a.rule_id for a in self.matched_alerts}),
+            "exec_id": None if self.execution is None else self.execution.exec_id,
+            "test_hash": definition_hash(self.test),
+            "correlation": self.test.expected.correlation,
             "error": self.error,
         }

@@ -1,0 +1,11 @@
+title: Dynamic Linker Preload on an Executed Command
+id: fba6129b-1eae-4e36-8675-da0b72ecb920
+status: experimental
+description: LD_PRELOAD is set for a command, which can inject a shared library into the process.
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    CommandLine|contains: 'LD_PRELOAD='
+  condition: selection
+level: medium
+tags: [attack.privilege_escalation, attack.persistence, attack.t1574.006]

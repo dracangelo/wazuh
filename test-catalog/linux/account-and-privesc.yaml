@@ -9,6 +9,7 @@ tests:
     risk: high                # creates a local account; needs --allow-destructive
     simulation: {test: 1, args: {username: "dv_atomic_{dv_exec_id}"}}
     expected:
+      correlation: exec_id
       rule_ids: ["5902"]        # new user added
       timeout_seconds: 60
 
@@ -31,6 +32,7 @@ tests:
     target: lab-linux-01
     simulation: {script: file-integrity/fim_touch.sh, interpreter: bash}
     expected:
+      correlation: exec_id
       rule_ids: ["550", "553", "554", "100100"]
       timeout_seconds: 180
 

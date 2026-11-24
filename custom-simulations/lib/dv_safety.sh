@@ -14,12 +14,13 @@
 
 DV_EXEC_ID="${DV_EXEC_ID:-dv$(date -u +%y%m%d%H%M%S)-$$-$RANDOM}"
 DV_TEST_ID="${DV_TEST_ID:-manual}"
-DV_MANIFEST="${DV_MANIFEST:-${TMPDIR:-/tmp}/dv_manifest_${DV_EXEC_ID}.list}"
 DV_CLEANUP_DONE="${DV_CLEANUP_DONE:-0}"
 
-if ! : >"$DV_MANIFEST" 2>/dev/null; then
-  DV_MANIFEST="${TMPDIR:-/tmp}/dv_manifest_$$.list"
+if [ -n "${DV_MANIFEST:-}" ]; then
   : >"$DV_MANIFEST" 2>/dev/null || DV_MANIFEST=/dev/null
+else
+  # mktemp: unpredictable name, mode 0600, never follows a pre-planted symlink.
+  DV_MANIFEST="$(mktemp "${TMPDIR:-/tmp}/dv_manifest_XXXXXX" 2>/dev/null)" || DV_MANIFEST=/dev/null
 fi
 
 dv_log() { printf 'dv[%s] %s\n' "$DV_TEST_ID" "$*" >&2; }
@@ -29,10 +30,25 @@ _dv_record() { printf '%s\n' "$1" >>"$DV_MANIFEST" 2>/dev/null || dv_log "WARN: 
 # Filesystem/account-safe suffix for this execution (no separators, no leading dash).
 dv_suffix() { printf '%s' "${DV_EXEC_ID//[^A-Za-z0-9]/}"; }
 
+# dv_require_lab_host HOST - exit 64 unless HOST is localhost or a literal private/loopback IPv4.
+# Anchored on purpose: a glob such as "10.*" would also accept the public name 10.evil.example.
+dv_require_lab_host() {
+  local h="${1:-}"
+  local octet='(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])'
+  if [ "$h" = localhost ]; then return 0; fi
+  if [[ "$h" =~ ^(127|10)(\.${octet}){3}$ ]] ||
+     [[ "$h" =~ ^192\.168(\.${octet}){2}$ ]] ||
+     [[ "$h" =~ ^172\.(1[6-9]|2[0-9]|3[01])(\.${octet}){2}$ ]]; then
+    return 0
+  fi
+  echo "refusing non-lab target: $h" >&2
+  exit 64
+}
+
 # Unique private temp dir, removed by cleanup.
 dv_tmpdir() {
   local d
-  d="$(mktemp -d "${TMPDIR:-/tmp}/dv_tmp_XXXXXX")" || return 1
+  d="$(mktemp -d "${TMPDIR:-/tmp}/dv_tmp_$(dv_suffix)_XXXXXX")" || return 1
   _dv_record "dir:$d"
   printf '%s' "$d"
 }
@@ -110,6 +126,8 @@ dv_cleanup() {
         ;;
       dir)
         [ -d "$rest" ] || continue
+        # an interrupted chattr test can leave an immutable file that rm cannot remove
+        command -v chattr >/dev/null 2>&1 && chattr -R -i -- "$rest" 2>/dev/null
         rm -rf -- "$rest" 2>/dev/null || { dv_log "CLEANUP FAILED: could not remove $rest"; rc=1; }
         ;;
       user)

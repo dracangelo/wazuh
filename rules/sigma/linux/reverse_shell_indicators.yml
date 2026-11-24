@@ -1,0 +1,24 @@
+title: Shell Reverse-Connection Indicators
+id: db24f0b8-dff1-4381-96d5-f1fa5c4b1a35
+status: experimental
+description: Shell or netcat/socat command lines that commonly establish a reverse connection.
+logsource: {category: process_creation, product: linux}
+detection:
+  selection_shell:
+    CommandLine|contains:
+      - '/dev/tcp/'
+      - '/dev/udp/'
+      - 'bash -i'
+      - 'sh -i'
+  selection_tool:
+    Image|endswith:
+      - '/nc'
+      - '/ncat'
+      - '/socat'
+    CommandLine|contains:
+      - ' -e '
+      - '--exec'
+      - 'EXEC:'
+  condition: selection_shell or selection_tool
+level: high
+tags: [attack.execution, attack.command_and_control, attack.t1059.004, attack.t1071]

@@ -80,6 +80,13 @@
     <description>Base: System 7045 service installed.</description>
   </rule>
 
+  <rule id="100722" level="0">
+    <decoded_as>windows_eventchannel</decoded_as>
+    <field name="win.system.providerName">^Microsoft-Windows-Sysmon$</field>
+    <field name="win.system.eventID">^15$</field>
+    <description>Base: Sysmon 15 alternate data stream created.</description>
+  </rule>
+
   <rule id="100721" level="0">
     <decoded_as>windows_eventchannel</decoded_as>
     <field name="win.system.providerName">^Microsoft-Windows-Security-Auditing$</field>

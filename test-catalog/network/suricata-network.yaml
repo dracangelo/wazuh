@@ -1,0 +1,46 @@
+tests:
+  - id: NET-SURICATA-COBALT-STRIKE
+    name: Suricata IDS detection of Cobalt Strike beaconing
+    technique: T1071.001
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [network, ids, suricata]
+    simulation:
+      script: network/pcap_replay.sh
+      interpreter: bash
+      args: [cobalt_strike]
+    expected:
+      rule_ids: ["100651"]
+      timeout_seconds: 45
+
+  - id: NET-SURICATA-SLIVER-C2
+    name: Suricata IDS detection of Sliver C2 communication
+    technique: T1071.001
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [network, ids, suricata]
+    simulation:
+      script: network/pcap_replay.sh
+      interpreter: bash
+      args: [sliver]
+    expected:
+      rule_ids: ["100652"]
+      timeout_seconds: 45
+
+  - id: NET-SURICATA-DNS-TUNNEL
+    name: Suricata IDS detection of DNS tunneling exfiltration
+    technique: T1071.004
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [network, ids, suricata]
+    simulation:
+      script: network/pcap_replay.sh
+      interpreter: bash
+      args: [dns_tunnel]
+    expected:
+      rule_ids: ["100653"]
+      timeout_seconds: 45
+

@@ -60,10 +60,19 @@ class AtomicAdapter(Adapter):
         args = {k: str(v).replace("{dv_exec_id}", exec_id) for k, v in (sim.get("args") or {}).items()}
         defaults = atomic.get("input_arguments")
         timeout = int(sim.get("timeout", self.default_timeout))
+        result = None
         try:
-            return run_script(target, interp, self._render(ex["command"], defaults, args, extra),
-                              timeout=timeout, allow_nonzero=bool(sim.get("allow_nonzero", False)))
+            result = run_script(target, interp, self._render(ex["command"], defaults, args, extra),
+                                timeout=timeout, allow_nonzero=bool(sim.get("allow_nonzero", False)))
+            return result
         finally:
             if ex.get("cleanup_command"):
-                run_script(target, interp, self._render(ex["cleanup_command"], defaults, args, extra),
-                           timeout=timeout, allow_nonzero=True)
+                cleanup = run_script(target, interp, self._render(ex["cleanup_command"], defaults, args, extra),
+                                     timeout=timeout, allow_nonzero=True)
+                if result is not None:
+                    result.exec_id = exec_id
+                    if cleanup.status != "ok":
+                        # cleanup trouble must be visible in the evidence, not silently dropped
+                        result.stderr += f"\n[dv] cleanup {cleanup.status}: {cleanup.error or ''}"
+            elif result is not None:
+                result.exec_id = exec_id

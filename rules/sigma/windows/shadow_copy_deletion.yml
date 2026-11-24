@@ -1,0 +1,34 @@
+title: Windows Shadow Copy Deletion via VSSAdmin or WMIC
+id: b836e840-09f7-4bca-abe8-5024d194d066
+status: test
+description: Detects volume shadow copy deletion or backup destruction, commonly seen prior to ransomware execution.
+references:
+  - https://attack.mitre.org/techniques/T1490/
+author: Antigravity Detection Team
+date: 2026/11/24
+tags:
+  - attack.t1490
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_vssadmin:
+    CommandLine|contains|all:
+      - 'vssadmin'
+      - 'delete'
+      - 'shadows'
+  selection_wmic:
+    CommandLine|contains|all:
+      - 'wmic'
+      - 'shadowcopy'
+      - 'delete'
+  selection_wbadmin:
+    CommandLine|contains|all:
+      - 'wbadmin'
+      - 'delete'
+      - 'catalog'
+  condition: selection_vssadmin or selection_wmic or selection_wbadmin
+falsepositives:
+  - Backup administration scripts configured by administrator
+level: critical
+

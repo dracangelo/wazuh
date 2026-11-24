@@ -119,6 +119,41 @@
     <group>collection,</group>
   </rule>
 
+  <rule id="100414" level="10">
+    <if_sid>100400</if_sid>
+    <regex type="pcre2">a\d+="LD_PRELOAD=</regex>
+    <description>LD_PRELOAD set on an executed command (dynamic linker injection).</description>
+    <mitre><id>T1574.006</id></mitre>
+    <group>execution,privilege_escalation,</group>
+  </rule>
+
+  <rule id="100415" level="7">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/ssh$</field>
+    <regex type="pcre2">a\d+="-[DRLw]([=:]\S*)?"</regex>
+    <description>ssh used for local, remote or dynamic port forwarding (tunneling).</description>
+    <mitre><id>T1572</id></mitre>
+    <group>command_and_control,tunneling,</group>
+  </rule>
+
+  <rule id="100416" level="8">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(ln|link)$</field>
+    <regex type="pcre2">a\d+="(-s|--symbolic|-sf|-sfn)"[^\n]*a\d+="/(etc/(shadow|gshadow|sudoers)|root/)</regex>
+    <description>Symbolic link created to a credential or root-only file.</description>
+    <mitre><id>T1003.008</id></mitre>
+    <group>credential_access,</group>
+  </rule>
+
+  <rule id="100417" level="6">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/sudo$</field>
+    <regex type="pcre2">a\d+="(-l|--list)"</regex>
+    <description>sudo privilege enumeration (sudo -l).</description>
+    <mitre><id>T1548.003</id></mitre>
+    <group>discovery,privilege_escalation,</group>
+  </rule>
+
   <!-- Syscall-level rules (one audit key each) -->
   <rule id="100420" level="12">
     <decoded_as>auditd</decoded_as>
@@ -177,6 +212,42 @@
     <description>Log file deleted or renamed under /var/log by a logged-in user.</description>
     <mitre><id>T1070.002</id></mitre>
     <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100427" level="11">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(python[0-9.]*|perl|ruby|php|node)$</field>
+    <regex type="pcre2">a\d+="(socket|connect|pty\.spawn|sh\s+-i|bash\s+-i|IO::Socket|fsockopen)"</regex>
+    <description>Scripting runtime inline reverse shell command execution.</description>
+    <mitre><id>T1059</id><id>T1059.006</id></mitre>
+    <group>execution,reverse_shell,</group>
+  </rule>
+
+  <rule id="100428" level="8">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(curl|wget)$</field>
+    <regex type="pcre2">\|\s*(/usr/bin/|/bin/)?(ba|z|da|k|c)?sh\b</regex>
+    <description>Suspicious pipe from web download utility directly to shell.</description>
+    <mitre><id>T1059.004</id><id>T1105</id></mitre>
+    <group>execution,</group>
+  </rule>
+
+  <rule id="100429" level="11">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(gcore|dd)$</field>
+    <regex type="pcre2">/proc/(\d+|kcore)|a\d+="\d+"</regex>
+    <description>Process or kernel memory dumping attempted via gcore or raw memory access.</description>
+    <mitre><id>T1003.007</id></mitre>
+    <group>credential_access,</group>
+  </rule>
+
+  <rule id="100430" level="8">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/iptables$</field>
+    <regex type="pcre2">a\d+="-L"</regex>
+    <description>Firewall configuration inspection or rule listing.</description>
+    <mitre><id>T1082</id></mitre>
+    <group>discovery,</group>
   </rule>
 
 </group>

@@ -3,10 +3,11 @@
 # Nothing is exploited: payloads are inert markers. Usage: web_probes.sh <host> <port> <probe>
 # probes: scanner | traversal | sqli | webshell | log4shell | canary (benign pipeline marker)
 HOST="${1:?host required}"; PORT="${2:-80}"; PROBE="${3:?probe required}"
-case "$HOST" in
-  127.*|10.*|192.168.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|localhost) ;;
-  *) echo "refusing non-lab target: $HOST" >&2; exit 64 ;;
-esac
+# Safety: lab use only. Literal private/loopback IPv4 or localhost; anything else is refused.
+if ! declare -F dv_require_lab_host >/dev/null 2>&1; then
+  . "$(dirname "$0")/../lib/dv_safety.sh" 2>/dev/null || { echo "dv_safety.sh not found" >&2; exit 1; }
+fi
+dv_require_lab_host "$HOST"
 B="http://$HOST:$PORT"; C=(curl -s -o /dev/null -m 5 --path-as-is)
 case "$PROBE" in
   scanner)   "${C[@]}" -A "sqlmap/1.7.2#stable (https://sqlmap.org)" "$B/" ;;

@@ -11,8 +11,11 @@ if ! declare -F dv_cleanup >/dev/null 2>&1; then
 fi
 set -u
 DIR="${1:-/etc}"
+case "$DIR" in /*) ;; *) echo "directory must be absolute: $DIR" >&2; exit 64 ;; esac
+[ -d "$DIR" ] || { echo "not a directory: $DIR" >&2; exit 64; }
 F="$DIR/dv_fim_test_$(dv_suffix).txt"
 dv_sudo_file "$F" "created" 0644 || exit 1
-sudo -n sh -c "sleep 3 && echo modified >> '$F'"
+sleep 3
+printf 'modified\n' | sudo -n tee -a -- "$F" >/dev/null
 sudo -n rm -f "$F"
 echo "fim events generated in $DIR for $(basename "$F")"

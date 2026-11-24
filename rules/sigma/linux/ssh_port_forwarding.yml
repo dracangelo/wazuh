@@ -1,0 +1,16 @@
+title: SSH Local, Remote or Dynamic Port Forwarding
+id: 3656d3d5-db20-4fe0-b39c-d8c06b412fbf
+status: experimental
+description: ssh used with port-forwarding flags, which can tunnel traffic through the host.
+logsource: {category: process_creation, product: linux}
+detection:
+  selection:
+    Image|endswith: '/ssh'
+    CommandLine|contains:
+      - ' -D '
+      - ' -R '
+      - ' -L '
+      - ' -w '
+  condition: selection
+level: low
+tags: [attack.command_and_control, attack.t1572]

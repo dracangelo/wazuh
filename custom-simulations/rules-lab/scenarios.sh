@@ -14,9 +14,11 @@ S="${1:?scenario required}"
 SUF="$(dv_suffix)"
 U="dv_grp_${SUF}"
 W="$(dv_tmpdir)" || exit 1
+# `command -v true` yields the builtin name, not a file; type -P searches PATH only.
+TRUE_BIN="$(type -P true)" || { echo "no true binary on PATH" >&2; exit 3; }
 
 case "$S" in
-  exec_tmp)        cp "$(command -v true)" "$W/dv_payload" && "$W/dv_payload" ;;
+  exec_tmp)        cp "$TRUE_BIN" "$W/dv_payload" && "$W/dv_payload" ;;
   benign_exec)     /usr/bin/env true ;;
   download_tmp)    curl -s -m 3 -o "$W/dl" http://127.0.0.1:9/dv || true ;;
   nc_exec)         NC="$(command -v ncat || command -v nc || true)"; [ -n "$NC" ] || { echo "no nc/ncat" >&2; exit 3; }
@@ -26,10 +28,15 @@ case "$S" in
   history_tamper)  touch "$W/.bash_history"; rm -f "$W/.bash_history" ;;
   recon_burst)     for c in whoami id "uname -a" hostname "ip a" "ss -tan" w who "last -n 3" id; do $c >/dev/null 2>&1 || true; done ;;
   recon_few)       whoami >/dev/null; id >/dev/null; hostname >/dev/null ;;
-  suid_chmod)      cp "$(command -v true)" "$W/suid_test" && chmod u+s "$W/suid_test" ;;
+  suid_chmod)      cp "$TRUE_BIN" "$W/suid_test" && chmod u+s "$W/suid_test" ;;
   base64_decode)   printf 'ZHZfdGVzdA==' | base64 -d >/dev/null ;;
   chattr_test)     F="$W/chattr_test"; : >"$F"; chattr +i "$F" || exit 3; chattr -i "$F" ;;
   archive_stage)   tar -czf "$W/stage.tgz" /etc/hostname 2>/dev/null || exit 3 ;;
+  ld_preload)      env LD_PRELOAD=/lib/x86_64-linux-gnu/libc.so.6 /bin/true ;;
+  ssh_tunnel)      ssh -o BatchMode=yes -o ConnectTimeout=2 -o StrictHostKeyChecking=no \
+                       -o UserKnownHostsFile=/dev/null -N -D 127.0.0.1:0 127.0.0.1 2>/dev/null || true ;;
+  shadow_symlink)  ln -s /etc/shadow "$W/shadow_link" ;;
+  sudo_list)       sudo -n -l >/dev/null 2>&1 || true ;;
   shadow_read)     sudo -n cat /etc/shadow >/dev/null ;;
   log_delete)      L="/var/log/dv_${SUF}.log"
                    dv_sudo_file "$L" "# dv test ${SUF}" 0644 || exit 1
@@ -52,7 +59,10 @@ case "$S" in
 Description=dv test ${SUF}" 0644 || exit 1
                    sleep 3; sudo -n rm -f "$F" ;;
   fim_authkeys)    AK="$HOME/.ssh/authorized_keys"
-                   mkdir -p "$HOME/.ssh" || exit 1
+                   if [ ! -d "$HOME/.ssh" ]; then
+                     mkdir -m 700 "$HOME/.ssh" || exit 1
+                     _dv_record "dir:$HOME/.ssh"
+                   fi
                    B=""
                    if [ -e "$AK" ]; then
                      B="$(dv_backup "$AK")" || exit 1
@@ -61,9 +71,22 @@ Description=dv test ${SUF}" 0644 || exit 1
                    fi
                    echo "# dv test ${SUF}" >>"$AK"; sleep 3
                    if [ -n "$B" ]; then cp -p "$B" "$AK"; else : >"$AK"; fi ;;
+  script_reverse_shell)
+                   python3 -c "import socket; print('simulation')" >/dev/null 2>&1 || true ;;
+  download_pipe_shell)
+                   printf 'echo test\n' | /bin/sh >/dev/null 2>&1 || true ;;
+  firewall_flush)  sudo -n iptables -L -n >/dev/null 2>&1 || true ;;
+  auditctl_tamper) sudo -n auditctl -s >/dev/null 2>&1 || true ;;
+  mem_dump_attempt)
+                   gcore "$$" >/dev/null 2>&1 || true ;;
   marker_syslog)   logger -p auth.notice -t dv_canary "DV_CANARY id=$(date +%s)-${SUF}" ;;
   marker_audit)    [ -e /etc/dv_audit_marker ] || { echo "provision first: sudo touch /etc/dv_audit_marker" >&2; exit 4; }
                    date | sudo -n tee -a /etc/dv_audit_marker >/dev/null ;;
   *) echo "unknown scenario: $S" >&2; exit 2 ;;
 esac
+rc=$?
+if [ "$rc" -ne 0 ]; then
+  echo "scenario $S FAILED with status $rc (exec ${SUF})" >&2
+  exit "$rc"
+fi
 echo "scenario $S done (exec ${SUF})"

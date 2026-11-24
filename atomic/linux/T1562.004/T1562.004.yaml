@@ -1,0 +1,14 @@
+attack_technique: T1562.004
+display_name: "Impair Defenses: Disable or Modify System Firewall"
+atomic_tests:
+  - name: Check firewall configuration on Linux
+    auto_generated_guid: 2c2e5758-aef5-45b6-a0e5-946065342624
+    description: >-
+      Runs benign read-only inspection of host firewall rules. Does not modify or flush firewall rules.
+    supported_platforms: [linux]
+    executor:
+      name: bash
+      elevation_required: false
+      command: |
+        iptables -L -n 2>/dev/null || true
+

@@ -1,0 +1,15 @@
+attack_technique: T1059.001
+display_name: "Command and Scripting Interpreter: PowerShell"
+atomic_tests:
+  - name: Run a benign encoded PowerShell command
+    auto_generated_guid: fba6129b-1eae-4e36-8675-da0b72ecb920
+    description: >-
+      Base64-encodes a Write-Output command and runs it through powershell.exe. The child command
+      line contains -EncodedCommand, which rule 100856 detects via Sysmon 1.
+    supported_platforms: [windows]
+    executor:
+      name: powershell
+      elevation_required: false
+      command: |
+        $b64 = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes("Write-Output dv_atomic"))
+        & powershell.exe -NoProfile -EncodedCommand $b64 | Out-Null

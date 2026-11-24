@@ -1,0 +1,15 @@
+attack_technique: T1046
+display_name: "Network Service Discovery"
+atomic_tests:
+  - name: Port connectivity scan via Test-NetConnection
+    auto_generated_guid: bac37c0f-af09-4fc2-90d0-44e16ac429e8
+    description: >-
+      Probes network port connectivity using Test-NetConnection. Sysmon 1 records the command line;
+      rule 100880 matches the probe.
+    supported_platforms: [windows]
+    executor:
+      name: powershell
+      elevation_required: false
+      command: |
+        Test-NetConnection -ComputerName 127.0.0.1 -Port 80 -WarningAction SilentlyContinue | Out-Null
+

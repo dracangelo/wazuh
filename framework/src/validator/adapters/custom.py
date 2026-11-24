@@ -47,6 +47,8 @@ class CustomAdapter(Adapter):
         script = script_path.read_text(encoding="utf-8")
         if sim.get("prelude", True):
             script = self._with_prelude(script, exec_id, test.id)
-        return run_script(runner, sim.get("interpreter", "bash"), script,
-                          args, timeout=int(sim.get("timeout", self.default_timeout)),
-                          allow_nonzero=bool(sim.get("allow_nonzero", False)))
+        result = run_script(runner, sim.get("interpreter", "bash"), script,
+                            args, timeout=int(sim.get("timeout", self.default_timeout)),
+                            allow_nonzero=bool(sim.get("allow_nonzero", False)))
+        result.exec_id = exec_id
+        return result

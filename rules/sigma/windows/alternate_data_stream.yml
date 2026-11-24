@@ -1,0 +1,13 @@
+title: NTFS Alternate Data Stream Created
+id: 38abdcc4-32db-4772-b530-2b46c86c25bb
+status: experimental
+description: A file event names an alternate data stream other than the browser Zone.Identifier marker.
+logsource: {category: file_event, product: windows}
+detection:
+  selection:
+    TargetFilename|re: '.*:[^\\]+$'
+  filter_zone:
+    TargetFilename|endswith: ':Zone.Identifier'
+  condition: selection and not filter_zone
+level: low
+tags: [attack.defense_evasion, attack.t1564.004]

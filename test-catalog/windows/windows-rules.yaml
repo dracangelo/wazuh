@@ -1,0 +1,170 @@
+# Windows catalog: smoke markers first, then rules with benign, self-cleaning simulations.
+# All custom Windows simulations set prelude: false because dv_safety.sh is bash.
+tests:
+- id: WIN-MARK-APP
+  name: Application-log canary reaches Wazuh
+  technique: MARKER
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [smoke, marker]
+  simulation:
+    script: windows/validation_app.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100700']
+    timeout_seconds: 90
+
+- id: WIN-MARK-SYSMON
+  name: Sysmon process-creation canary reaches Wazuh
+  technique: MARKER
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [smoke, marker]
+  simulation:
+    script: windows/validation_sysmon.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100701']
+    timeout_seconds: 90
+
+- id: WIN-MARK-SECURITY
+  name: Security-log failed-logon canary reaches Wazuh
+  technique: MARKER
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [smoke, marker]
+  simulation:
+    script: windows/validation_security.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100702']
+    timeout_seconds: 120
+
+- id: WIN-MARK-FIM
+  name: Windows FIM lifecycle marker (create, modify, delete)
+  technique: T1565.001
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [smoke, marker]
+  simulation:
+    script: windows/fim_marker.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100703', '100704', '100705']
+    require_all: true
+    timeout_seconds: 180
+
+- id: WIN-R100856
+  name: Encoded PowerShell command
+  technique: T1059.001
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [rules]
+  simulation:
+    script: windows/encoded_powershell.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100856']
+    timeout_seconds: 90
+
+- id: WIN-R100862
+  name: Burst of discovery commands
+  technique: T1082
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [rules]
+  simulation:
+    script: windows/discovery_burst.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100862']
+    timeout_seconds: 120
+
+- id: WIN-R100873
+  name: Domain and network trust discovery
+  technique: T1482
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [rules]
+  simulation:
+    script: windows/domain_discovery.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100873']
+    timeout_seconds: 90
+
+- id: WIN-R100875
+  name: File timestamp changed from PowerShell
+  technique: T1070.006
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [rules]
+  simulation:
+    script: windows/timestomp.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100875']
+    timeout_seconds: 90
+
+- id: WIN-R100876
+  name: Alternate data stream created
+  technique: T1564.004
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [rules]
+  simulation:
+    script: windows/ads.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100876']
+    timeout_seconds: 90
+
+- id: WIN-R100877
+  name: COM CLSID InprocServer32 pointed at a user-writable path
+  technique: T1546.015
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [rules]
+  risk: medium
+  simulation:
+    script: windows/com_hijack.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100877']
+    timeout_seconds: 90
+
+- id: WIN-R100860
+  name: Local account added to Administrators
+  technique: T1098
+  platform: windows
+  source: custom
+  target: lab-win-01
+  tags: [rules]
+  risk: high
+  simulation:
+    script: windows/local_admin_add.ps1
+    interpreter: powershell
+    prelude: false
+  expected:
+    rule_ids: ['100860']
+    timeout_seconds: 90

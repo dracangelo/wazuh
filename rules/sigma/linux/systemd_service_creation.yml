@@ -1,0 +1,21 @@
+title: Systemd Service Creation or Enablement
+id: e54b4eb8-f867-4859-ae6c-5d92222afd35
+status: experimental
+description: A unit is written under /etc/systemd/system or enabled/linked with systemctl.
+logsource: {category: process_creation, product: linux}
+detection:
+  selection_systemctl:
+    Image|endswith: '/systemctl'
+    CommandLine|contains:
+      - ' enable '
+      - ' link '
+  selection_unit_write:
+    Image|endswith:
+      - '/tee'
+      - '/cp'
+      - '/mv'
+      - '/install'
+    CommandLine|contains: '/etc/systemd/system/'
+  condition: selection_systemctl or selection_unit_write
+level: medium
+tags: [attack.persistence, attack.privilege_escalation, attack.t1543.002]

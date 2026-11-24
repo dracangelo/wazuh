@@ -1,91 +1,119 @@
-# detection-rules
+# Wazuh Detection Engineering & Attack Simulation Framework
 
-Validate Wazuh (and Sigma) detections by **running real attack simulations in a lab** and checking
-that the expected alerts fire - and that benign activity doesn't.
+A comprehensive, production-grade detection engineering framework to **develop, compile, simulate, and automatically validate Wazuh and Sigma detection rules** across Linux, Windows, Cloud, Containers, and Network IDS environments.
 
 ```
-catalog test ─▶ adapter (atomic | custom) ─▶ target (local/SSH) ─▶ Wazuh agent ─▶ manager ─▶ indexer
-      │                                                                                         │
-      └──────────── verdict TP/FN/TN/FP ◀── evaluator/matcher ◀── alert collector ◀─────────────┘
-                         │
-                  SQLite + evidence/ ─▶ reports (json/csv/html/pdf) · regression diff · coverage matrix
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐       ┌──────────────────┐
+│   Threat Intel  │ ────▶ │  Sigma / Wazuh  │ ────▶ │ Attack Playbook │ ────▶ │  Target Sensors  │
+│  & MITRE ATT&CK │       │   Rule Engine   │       │   Simulations   │       │  Linux/Win/Cloud │
+└─────────────────┘       └─────────────────┘       └─────────────────┘       └──────────────────┘
+                                                                                        │
+                                                                                        ▼
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐       ┌──────────────────┐
+│ Web Dashboard / │ ◀──── │  TP / TN / FP   │ ◀──── │ Alert Evaluator │ ◀──── │   Wazuh Server   │
+│ Coverage Matrix │       │    Verdicts     │       │   & Matcher     │       │ Manager/Indexer  │
+└─────────────────┘       └─────────────────┘       └─────────────────┘       └──────────────────┘
 ```
 
-## Quick start
+---
+
+## 🌟 Key Capabilities
+
+1. **Multi-Domain Detection Engine (183 Rules)**
+   - **Linux**: Authentication, sudo privilege escalation, persistence, auditd execution, memory dumping, defense evasion (`0100`–`0600`).
+   - **Windows**: Sysmon process creation, PowerShell script-block logging, privilege use, COM hijacking, timestomping, ADS, and registry evasion (`0700`–`0930`).
+   - **Cloud**: AWS CloudTrail root login without MFA, CloudTrail tampering, Azure Entra ID risky sign-ins, GCP IAM privilege escalation (`0610`).
+   - **Containers & Kubernetes**: Host Docker socket access, privileged containers, and service account secret token exfiltration (`0630`).
+   - **Network IDS / Suricata**: Cobalt Strike malleable C2 profiles, BishopFox Sliver C2 communication, and DNS tunneling (`0650`).
+
+2. **Automated Threat Playbooks (`scripts/playbook.py`)**
+   - Threat-specific simulation playbooks (`smoke`, `credential-access`, `defense-evasion`, `execution`, `discovery`, `persistence`, `cloud`, `container`, `network-ids`, and `all`).
+
+3. **Offline Alert Replay Engine (`dv replay`)**
+   - Score detection logic offline against captured alert streams without standing up live VMs or active Wazuh clusters.
+
+4. **Automated Rule Exporter & Wazuh Deployer (`scripts/deploy_rules.py`)**
+   - Validates XML syntax, backs up existing manager configurations, deploys via SSH/SCP or the Wazuh REST API, and reloads services automatically.
+
+5. **Automatic Sigma-to-Wazuh Compiler (`scripts/compile_sigma.py`)**
+   - Compiles Sigma YAML rules directly into Wazuh XML rules with automatic parent-child linking, PCRE2 regex translations, and MITRE mapping.
+
+6. **Interactive Detection Dashboard (`scripts/dashboard.py`)**
+   - Web application displaying the MITRE ATT&CK coverage heatmap, live execution terminal, and one-click playbook runners.
+
+7. **Continuous Test Automation (`scripts/run_tests.sh` & `scripts/rerun_loop.sh`)**
+   - Automated runner and background watch daemon for instant feedback during detection rule development.
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Prerequisites & Environment Setup
 ```bash
-cd framework && python -m venv .venv && . .venv/bin/activate
-pip install -e ".[dev]"            # add ,pdf for PDF reports
-pytest                             # no lab needed
-export WAZUH_API_USER=... WAZUH_API_PASSWORD=... WAZUH_INDEXER_USER=... WAZUH_INDEXER_PASSWORD=...
-$EDITOR config/environments.yaml   # your LAB hosts + Wazuh agent names
-export DV_LAB_ACK=1                # acknowledge this is a disposable lab (required by the safety gate)
-dv lint && dv rules-check          # catalog + Wazuh rule XML lint (offline)
-dv rules-check --live && dv doctor # parents exist on manager, agents active, expected rules loaded
-dv list --platform linux
-dv run --technique T1110 --dry-run  # show target, risk and simulation; executes nothing
-dv run --technique T1110 --label smoke
-dv report --format html json
-dv regress                         # re-runs tests/regression, diffs vs previous regression run
-dv coverage                        # writes mappings/coverage-matrix.csv
+# Clone and enter directory
+cd /path/to/detection
+
+# Set up virtual environment and install framework
+cd framework && python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+cd ..
 ```
 
-## Layout notes
-- `test-catalog/**.yaml` - test definitions (one test or a `tests:` list). Schema: see `models.TestCase`.
-- `atomic/<platform>/<Txxxx>/<Txxxx>.yaml` - Atomic Red Team definitions; copy the ones you use from
-  redcanaryco/atomic-red-team. Benign Linux samples for T1033, T1070.003, T1082, T1136.001 and
-  T1548.001 are included, with unique names and cleanup.
-- `rules/wazuh/linux/` - custom Linux rules, IDs 100100-100699 (see its README for deploy steps,
-  auditd rules, and agent config). `rules/wazuh/examples/` holds non-deployed reference XML.
-- `custom-simulations/` - our scripts. `lib/dv_safety.sh` gives every run unique resource names and
-  ownership-tracked, idempotent cleanup; the adapter prepends it automatically.
-- `tests/unit|integration` - pytest. `tests/positive|negative` - fixture alert streams.
-  `tests/regression` - catalog-format tests re-run by `dv regress`.
-- `framework/src/validator/config.py` - small addition to the original tree (config loading).
+### 2. Verify Repository Health & Run Unit Tests
+```bash
+# Run all offline syntax checks, catalog linting, and 140+ unit tests
+./scripts/run_tests.sh --all
+```
 
-## Verdicts
-TP attack detected · FN **coverage gap** · TN benign stayed quiet · FP noisy rule · ERROR simulation or
-collection failed (never counted as a pass).
+### 3. Launch Interactive Web Dashboard
+```bash
+python3 scripts/dashboard.py --port 8888
+# Open http://localhost:8888 in your browser
+```
 
-## Alert collection
+### 4. Run Threat Simulation Playbooks (Dry-Run / Live)
+```bash
+# List all available playbooks
+python3 scripts/playbook.py list
 
-The indexer collector pages through a window with `search_after` (`alerts.page_size`, default 1000)
-and stops at `alerts.max_alerts` (default 5000), with `id` as the tie-breaker for equal timestamps.
-When a window reaches the cap, the collector reports it as truncated and the test is recorded as
-`ERROR` - an incomplete window must never be scored as `FN`, `TN` or `FP`. The file collector applies
-the same cap. Raise `max_alerts` for noisy targets; do not lower it to make a run pass.
+# Dry-run the Credential Access Playbook (safe mode)
+DV_LAB_ACK=1 python3 scripts/playbook.py credential-access
 
-## Safety model
+# Replay an alert stream offline through the Defense Evasion playbook
+python3 scripts/playbook.py defense-evasion --replay tests/positive/alerts_replay_sample.ndjson
+```
 
-Lab only. Run simulations on disposable VMs with a dedicated, least-privileged runner account; never
-against production.
+---
 
-Before any simulation command is built, the Python execution layer checks every test centrally
-(`framework/src/validator/safety.py`):
+## 📖 Detailed Documentation
 
-- **Lab acknowledgement is mandatory.** Set `safety.lab_acknowledged: true` in
-  `config/settings.yaml` or export `DV_LAB_ACK=1` for the process. Without it every test is `ERROR`
-  and no command runs.
-- **Targets must be inside the lab.** SSH targets are accepted only when every resolved address is
-  in `safety.allowed_cidrs`; public addresses are refused. Hostnames must additionally appear in
-  `safety.allowed_hostnames`, so DNS cannot silently point a test at an unexpected system. There is
-  no command-line flag that overrides these checks.
-- **Risk gating.** Each test carries `risk: low|medium|high` (default `medium`). `high` tests - those
-  that create accounts, write to system paths, or edit crontabs/units - run only with
-  `--allow-destructive` (or `safety.allow_destructive: true`).
-- **Decisions are recorded** in `evidence/safety.log`, including tests that were blocked. Preflight
-  runs before the first command, so one unsafe target stops the run rather than executing the safe
-  tests first.
-- **Simulations are unique and self-owning.** Every execution gets an id (`DV_EXEC_ID`). Accounts,
-  files, units and temp directories derive from it, pre-existing resources are refused rather than
-  overwritten, and cleanup removes only resources whose creation the run recorded. Cleanup runs on
-  `EXIT/INT/TERM/HUP`, is idempotent, and reports failures on stderr (stored as evidence).
-- **Every command has a timeout** (`evaluation.command_timeout_seconds`, or `simulation.timeout`).
-  Outcomes are classified as `ok`, `command_failed`, `timeout`, `connection_failed` or
-  `setup_failed`; a failed simulation is `ERROR`, never `FN`.
+Comprehensive documentation guides are available in the [`docs/`](docs/) directory:
 
-Rule IDs in the sample catalog depend on your Wazuh version - confirm with `dv doctor`.
+- [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md): System architecture, telemetry pipeline, correlation mechanics, and safety gates.
+- [**docs/PLAYBOOKS_AND_SIMULATIONS.md**](docs/PLAYBOOKS_AND_SIMULATIONS.md): Guide to the 81+ attack simulation scenarios and Atomic Red Team tests.
+- [**docs/RULES_AND_DEPLOYMENT.md**](docs/RULES_AND_DEPLOYMENT.md): Complete Wazuh and Sigma rule reference, deployment procedures, and compiler usage.
+- [**docs/REPLAY_ENGINE_AND_CI.md**](docs/REPLAY_ENGINE_AND_CI.md): Offline alert replay testing, continuous integration, and automated test loops.
 
-## Offline checks
-The test suite needs no Wazuh, no SSH and no lab: `cd framework && pytest`. CI also runs `dv lint`
-(catalog schema, duplicate test IDs), `dv rules-check` (unique rule IDs, levels, regexes, parents),
-ruff, and a shell syntax check. Live detection results are never produced by CI.
+---
+
+## 🛡️ Safety Model
+
+Simulating cyberattacks requires strict safety boundaries to prevent running tests against unintended environments:
+1. **Lab Acknowledgment Gate**: Live executions require `DV_LAB_ACK=1` in the environment or `safety.lab_acknowledged: true` in `framework/config/settings.yaml`.
+2. **Private Network Boundaries**: Simulations refuse to connect to targets outside RFC1918 private CIDR blocks (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`).
+3. **Idempotent Resource Tracking**: All custom simulations use `custom-simulations/lib/dv_safety.sh` to record generated files, accounts, and directories in a per-execution manifest, guaranteeing cleanup on completion or interruption.
+4. **Destructive Guard**: High-risk tests (e.g. shadow file access or setuid creation) require the explicit `--allow-destructive` flag.
+
+---
+
+## 📊 Coverage Matrix
+
+To inspect your current MITRE ATT&CK coverage matrix:
+```bash
+dv coverage
+# Output matrix is saved to mappings/coverage-matrix.csv
+```
+Viewing the matrix in the web dashboard displays techniques color-coded by test verdicts:
+- **`COVERED`**: Attack simulations detected as True Positives (TP) and benign actions passed as True Negatives (TN).
+- **`PARTIAL`**: Some positive tests detected, but coverage gaps remain.
+- **`GAP`**: Positive tests did not trigger expected alerts (False Negatives).

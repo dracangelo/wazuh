@@ -3,11 +3,11 @@
 # Usage: ssh_failed_logins.sh <host> [count=10]   (no passwords are guessed; connections are rejected)
 HOST="${1:?host required}"; COUNT="${2:-10}"
 
-# Safety: lab use only. Refuse anything that is not a private/loopback address.
-case "$HOST" in
-  127.*|10.*|192.168.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|localhost) ;;
-  *) echo "refusing non-lab target: $HOST" >&2; exit 64 ;;
-esac
+# Safety: lab use only. Literal private/loopback IPv4 or localhost; anything else is refused.
+if ! declare -F dv_require_lab_host >/dev/null 2>&1; then
+  . "$(dirname "$0")/../lib/dv_safety.sh" 2>/dev/null || { echo "dv_safety.sh not found" >&2; exit 1; }
+fi
+dv_require_lab_host "$HOST"
 for i in $(seq 1 "$COUNT"); do
   ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
       "dv_invalid_user_$i@$HOST" true 2>/dev/null || true

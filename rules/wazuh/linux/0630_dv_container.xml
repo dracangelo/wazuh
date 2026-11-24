@@ -1,0 +1,35 @@
+<!-- Container & Kubernetes Security Rules (IDs 100630-100649)
+     Covers: Docker daemon socket access, privileged containers, container escape indicators.
+     Auditd and Docker container daemon log telemetry. -->
+<group name="local,container,docker,k8s,dv_validation,">
+
+  <!-- Host Docker socket access from interactive session or container -->
+  <rule id="100630" level="13">
+    <if_sid>100400</if_sid>
+    <field name="audit.execve" type="pcre2">(?i)/var/run/docker\.sock|docker\.sock</field>
+    <description>Container Security: Host Docker socket mounted or accessed.</description>
+    <mitre><id>T1611</id><id>T1059.004</id></mitre>
+    <group>container_escape,privilege_escalation,</group>
+  </rule>
+
+  <!-- Docker run with privileged flag or sensitive capabilities -->
+  <rule id="100631" level="12">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(docker|podman|nerdctl|crictl)$</field>
+    <regex type="pcre2">a\d+="(--privileged|--cap-add=ALL|--cap-add=SYS_ADMIN|--pid=host|--net=host)"</regex>
+    <description>Container Security: Privileged container spawned or host namespaces mounted.</description>
+    <mitre><id>T1610</id><id>T1611</id></mitre>
+    <group>privilege_escalation,container_escape,</group>
+  </rule>
+
+  <!-- Kubernetes: Service account token exfiltration or access in container -->
+  <rule id="100632" level="11">
+    <if_sid>100400</if_sid>
+    <field name="audit.execve" type="pcre2">/var/run/secrets/kubernetes\.io/serviceaccount/token</field>
+    <description>Container Security: Kubernetes service account secret token read.</description>
+    <mitre><id>T1552.007</id><id>T1611</id></mitre>
+    <group>credential_access,container_security,</group>
+  </rule>
+
+</group>
+

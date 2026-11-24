@@ -18,23 +18,29 @@ class RunRepository:
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
 
-    def create_run(self, label: str | None = None) -> int:
-        cur = self.conn.execute("INSERT INTO runs(label, started_at, git_sha) VALUES (?,?,?)",
-                                (label, datetime.now(timezone.utc).isoformat(), _git_sha()))
+    def create_run(self, label: str | None = None, meta: dict | None = None) -> int:
+        cur = self.conn.execute("INSERT INTO runs(label, started_at, git_sha, meta) VALUES (?,?,?,?)",
+                                (label, datetime.now(timezone.utc).isoformat(), _git_sha(),
+                                 json.dumps(meta, sort_keys=True) if meta else None))
         self.conn.commit()
         return cur.lastrowid
 
-    def finish_run(self, run_id: int) -> None:
-        self.conn.execute("UPDATE runs SET finished_at=? WHERE id=?",
-                          (datetime.now(timezone.utc).isoformat(), run_id))
+    def finish_run(self, run_id: int, *, status: str = "completed",
+                   canary_status: str | None = None, canary_detail: str | None = None) -> None:
+        self.conn.execute(
+            "UPDATE runs SET finished_at=?, status=?, canary_status=COALESCE(?, canary_status), "
+            "canary_detail=COALESCE(?, canary_detail) WHERE id=?",
+            (datetime.now(timezone.utc).isoformat(), status, canary_status, canary_detail, run_id))
         self.conn.commit()
 
     def save_result(self, run_id: int, row: dict) -> None:
         self.conn.execute(
             "INSERT INTO results(run_id,test_id,name,technique,platform,negative,verdict,"
-            "latency_seconds,matched_rule_ids,error) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "latency_seconds,matched_rule_ids,error,exec_id,correlation,test_hash) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (run_id, row["test_id"], row["name"], row["technique"], row["platform"], int(row["negative"]),
-             row["verdict"], row["latency_seconds"], json.dumps(row["matched_rule_ids"]), row["error"]))
+             row["verdict"], row["latency_seconds"], json.dumps(row["matched_rule_ids"]), row["error"],
+             row.get("exec_id"), row.get("correlation"), row.get("test_hash")))
         self.conn.commit()
 
     def results(self, run_id: int) -> list[dict]:
@@ -48,9 +54,17 @@ class RunRepository:
 
     def get_run(self, run_id: int) -> dict | None:
         r = self.conn.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
-        return dict(r) if r else None
+        if not r:
+            return None
+        d = dict(r)
+        try:
+            d["meta"] = json.loads(d["meta"]) if d.get("meta") else {}
+        except ValueError:
+            d["meta"] = {}
+        return d
 
-    def latest_run_id(self, label: str | None = None, before: int | None = None) -> int | None:
+    def latest_run_id(self, label: str | None = None, before: int | None = None,
+                      status: str | None = None) -> int | None:
         q, p = "SELECT id FROM runs WHERE finished_at IS NOT NULL", []
         if label:
             q += " AND label=?"
@@ -58,6 +72,9 @@ class RunRepository:
         if before:
             q += " AND id<?"
             p.append(before)
+        if status:
+            q += " AND status=?"
+            p.append(status)
         r = self.conn.execute(q + " ORDER BY id DESC LIMIT 1", p).fetchone()
         return r["id"] if r else None
 

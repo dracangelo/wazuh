@@ -51,10 +51,12 @@ def build_command(target: Target, argv: list[str]) -> list[str]:
         if not (target.host and target.user):
             raise ValueError(f"target {target.name}: ssh needs host and user")
         cmd = ["ssh", "-p", str(target.port), "-o", "BatchMode=yes",
-               "-o", "StrictHostKeyChecking=accept-new"]
+               "-o", "StrictHostKeyChecking=accept-new", "-o", "ConnectTimeout=10",
+               "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=3"]
         if target.key_file:
             cmd += ["-i", str(Path(target.key_file).expanduser())]
-        return [*cmd, f"{target.user}@{target.host}", " ".join(shlex.quote(a) for a in argv)]
+        # "--" stops option parsing, so a host or user can never be read as an ssh option.
+        return [*cmd, "--", f"{target.user}@{target.host}", " ".join(shlex.quote(a) for a in argv)]
     raise ValueError(f"unsupported transport '{target.transport}'")
 
 
@@ -93,6 +95,11 @@ def run_script(target: Target, interpreter: str, script: str, args: list[str] | 
     except OSError as exc:
         return ExecutionResult(started, _now(), False, error=f"transport error: {exc}",
                                status="connection_failed")
+    if target.transport == "ssh" and p.returncode == 255:
+        # ssh itself failed (refused, unreachable, auth, host key): the simulation never ran, even
+        # when the catalog allows non-zero exits from the remote command.
+        return ExecutionResult(started, _now(), False, p.returncode, p.stdout, p.stderr,
+                               f"ssh connection failed: {p.stderr.strip()[-200:]}", status="connection_failed")
     ok = p.returncode == 0 or allow_nonzero
     return ExecutionResult(started, _now(), ok, p.returncode, p.stdout, p.stderr,
                            None if ok else f"exit code {p.returncode}",

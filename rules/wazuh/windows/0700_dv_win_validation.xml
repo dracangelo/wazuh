@@ -34,22 +34,22 @@
 
   <rule id="100703" level="10">
     <if_sid>554</if_sid>
-    <field name="file" type="pcre2">(?i)\\dv_fim_test\.txt$</field>
-    <description>Marker: dv_fim_test.txt created in a monitored Windows directory.</description>
+    <field name="file" type="pcre2">(?i)\\dv_fim_test[A-Za-z0-9_-]*\.txt$</field>
+    <description>Marker: dv_fim_test*.txt created in a monitored Windows directory.</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 
   <rule id="100704" level="10">
     <if_sid>550</if_sid>
-    <field name="file" type="pcre2">(?i)\\dv_fim_test\.txt$</field>
-    <description>Marker: dv_fim_test.txt modified in a monitored Windows directory.</description>
+    <field name="file" type="pcre2">(?i)\\dv_fim_test[A-Za-z0-9_-]*\.txt$</field>
+    <description>Marker: dv_fim_test*.txt modified in a monitored Windows directory.</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 
   <rule id="100705" level="10">
     <if_sid>553</if_sid>
-    <field name="file" type="pcre2">(?i)\\dv_fim_test\.txt$</field>
-    <description>Marker: dv_fim_test.txt deleted from a monitored Windows directory.</description>
+    <field name="file" type="pcre2">(?i)\\dv_fim_test[A-Za-z0-9_-]*\.txt$</field>
+    <description>Marker: dv_fim_test*.txt deleted from a monitored Windows directory.</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 
@@ -57,7 +57,7 @@
     <if_sid>100705</if_sid>
     <if_matched_sid>100704</if_matched_sid>
     <same_field>file</same_field>
-    <description>Marker: dv_fim_test.txt full lifecycle observed (create, modify, delete).</description>
+    <description>Marker: dv_fim_test*.txt full lifecycle observed (create, modify, delete).</description>
     <mitre><id>T1565.001</id></mitre>
   </rule>
 

@@ -33,6 +33,26 @@ tests:
     simulation: {test: 1}
     expected: {rule_ids: ["100407"], timeout_seconds: 60}
 
+  - id: LIN-ATOMIC-T1574-006
+    name: Atomic - LD_PRELOAD on an executed command
+    technique: T1574.006
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    simulation: {test: 1}
+    expected: {rule_ids: ["100414"], timeout_seconds: 60}
+
+  - id: LIN-ATOMIC-T1548-003
+    name: Atomic - sudo privilege enumeration
+    technique: T1548.003
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    simulation: {test: 1, allow_nonzero: true}
+    expected: {rule_ids: ["100417"], timeout_seconds: 60}
+
   - id: LIN-ATOMIC-T1548-001
     name: Atomic - setuid bit on a temporary file
     technique: T1548.001
@@ -43,3 +63,26 @@ tests:
     risk: high                # creates a setuid file in /tmp; removed by the atomic cleanup
     simulation: {test: 1}
     expected: {rule_ids: ["100320", "100321", "100421"], timeout_seconds: 120}
+
+  - id: LIN-ATOMIC-T1562-004
+    name: Atomic - benign firewall listing stays quiet
+    technique: T1562.004
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    simulation: {test: 1, allow_nonzero: true}
+    negative: true
+    expected: {rule_ids: ["100504"], timeout_seconds: 45}
+
+  - id: LIN-ATOMIC-T1003-007
+    name: Atomic - process memory dump attempt
+    technique: T1003.007
+    platform: linux
+    source: atomic
+    target: lab-linux-01
+    tags: [atomic]
+    simulation: {test: 1, allow_nonzero: true}
+    expected: {rule_ids: ["100429"], timeout_seconds: 60}
+
+

@@ -1,0 +1,25 @@
+title: Linux System Information and Hardware Discovery
+id: 376aa8f7-67b4-446b-b09f-81c9b7db1023
+status: test
+description: Detects comprehensive discovery commands gathering OS and architecture information.
+references:
+  - https://attack.mitre.org/techniques/T1082/
+author: Antigravity Detection Team
+date: 2026/11/24
+tags:
+  - attack.t1082
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    CommandLine|contains:
+      - 'hostnamectl'
+      - 'lscpu'
+      - 'lsblk'
+      - 'uname -a'
+  condition: selection
+falsepositives:
+  - Standard administration and inventory tools
+level: low
+

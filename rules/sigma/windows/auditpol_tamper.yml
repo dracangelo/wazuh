@@ -1,0 +1,25 @@
+title: Windows Audit Policy Tampering via Auditpol
+id: 49a0727b-6090-4aa0-b30e-92803d1030a4
+status: test
+description: Detects clearing or disabling of security auditing policies using auditpol.exe.
+references:
+  - https://attack.mitre.org/techniques/T1562/002/
+author: Antigravity Detection Team
+date: 2026/11/24
+tags:
+  - attack.t1562.002
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: '\auditpol.exe'
+    CommandLine|contains:
+      - '/clear'
+      - '/remove'
+      - 'disable'
+  condition: selection
+falsepositives:
+  - Authorized security policy re-baselining by domain administrators
+level: high
+

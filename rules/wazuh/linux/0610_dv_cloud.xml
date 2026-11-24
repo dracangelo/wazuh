@@ -1,0 +1,44 @@
+<!-- Cloud Infrastructure and Identity Rules (IDs 100610-100629)
+     Covers: AWS CloudTrail, GCP Audit Logs, Azure Entra ID / Activity Logs.
+     Decoded via standard Wazuh json / cloud log decoders. -->
+<group name="local,cloud,dv_validation,">
+
+  <!-- AWS CloudTrail: Root account console login without MFA -->
+  <rule id="100610" level="12">
+    <field name="aws.eventName">^ConsoleLogin$</field>
+    <field name="aws.userIdentity.type">^Root$</field>
+    <field name="aws.additionalEventData.MFAUsed" negate="yes">^Yes$</field>
+    <description>AWS CloudTrail: Root account console login without MFA.</description>
+    <mitre><id>T1078.004</id></mitre>
+    <group>authentication_success,cloud_security,</group>
+  </rule>
+
+  <!-- AWS CloudTrail: CloudTrail logging stopped or deleted -->
+  <rule id="100611" level="14">
+    <field name="aws.eventName" type="pcre2">^(StopLogging|DeleteTrail|UpdateTrail)$</field>
+    <description>AWS CloudTrail: CloudTrail logging stopped, modified or deleted.</description>
+    <mitre><id>T1562.001</id></mitre>
+    <group>defense_evasion,cloud_security,</group>
+  </rule>
+
+  <!-- Azure Entra ID: Sign-in from high-risk IP or anomalous location -->
+  <rule id="100612" level="10">
+    <field name="azure.operationName" type="pcre2">(?i)Sign-in activity</field>
+    <field name="azure.properties.riskState" type="pcre2">(?i)atRisk|confirmedCompromised</field>
+    <description>Azure Entra ID: User sign-in flagged as high risk by Identity Protection.</description>
+    <mitre><id>T1078.004</id><id>T1110</id></mitre>
+    <group>authentication_success,cloud_security,</group>
+  </rule>
+
+  <!-- GCP Audit: IAM policy changed granting owner or admin -->
+  <rule id="100613" level="13">
+    <field name="gcp.methodName" type="pcre2">(?i)SetIamPolicy</field>
+    <field name="gcp.resource.type" type="pcre2">(?i)project|organization</field>
+    <regex type="pcre2">(?i)roles/(owner|resourcemanager\.organizationAdmin)</regex>
+    <description>GCP Audit: Project or Organization IAM policy modified with administrative role.</description>
+    <mitre><id>T1098</id><id>T1078.004</id></mitre>
+    <group>privilege_escalation,cloud_security,</group>
+  </rule>
+
+</group>
+

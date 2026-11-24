@@ -71,3 +71,39 @@ techniques:
   T1560.001:
     name: 'Archive Collected Data: Archive via Utility'
     tactic: collection
+  T1574.006:
+    name: 'Hijack Execution Flow: Dynamic Linker Hijacking'
+    tactic: privilege-escalation
+  T1572:
+    name: Protocol Tunneling
+    tactic: command-and-control
+  T1059.001:
+    name: 'Command and Scripting Interpreter: PowerShell'
+    tactic: execution
+  T1087.001:
+    name: 'Account Discovery: Local Account'
+    tactic: discovery
+  T1087.002:
+    name: 'Account Discovery: Domain Account'
+    tactic: discovery
+  T1018:
+    name: Remote System Discovery
+    tactic: discovery
+  T1482:
+    name: Domain Trust Discovery
+    tactic: discovery
+  T1021.001:
+    name: 'Remote Services: Remote Desktop Protocol'
+    tactic: lateral-movement
+  T1021.006:
+    name: 'Remote Services: Windows Remote Management'
+    tactic: lateral-movement
+  T1070.006:
+    name: 'Indicator Removal: Timestomp'
+    tactic: defense-evasion
+  T1564.004:
+    name: 'Hide Artifacts: NTFS File Attributes'
+    tactic: defense-evasion
+  T1546.015:
+    name: 'Event Triggered Execution: Component Object Model Hijacking'
+    tactic: privilege-escalation

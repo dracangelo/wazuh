@@ -1,0 +1,15 @@
+title: File Timestamp Modification
+id: c684983d-0f11-4323-a0b8-91a93ede9914
+status: experimental
+description: PowerShell or built-in tooling sets file creation, access or write timestamps.
+logsource: {category: process_creation, product: windows}
+detection:
+  selection:
+    CommandLine|contains:
+      - 'LastWriteTime'
+      - 'CreationTime'
+      - 'LastAccessTime'
+      - 'SetFileTime'
+  condition: selection
+level: medium
+tags: [attack.defense_evasion, attack.t1070.006]

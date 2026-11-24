@@ -1,0 +1,14 @@
+attack_technique: T1070.001
+display_name: "Indicator Removal: Clear Windows Event Logs"
+atomic_tests:
+  - name: Query Windows event log status via wevtutil
+    auto_generated_guid: 1c436fbb-9e6b-4345-8d65-dedfe96cf016
+    description: >-
+      Enumerates Windows event log names and status without clearing log records.
+    supported_platforms: [windows]
+    executor:
+      name: powershell
+      elevation_required: false
+      command: |
+        wevtutil enum-logs | Select-Object -First 5
+

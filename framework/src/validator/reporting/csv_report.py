@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 
 FIELDS = ["test_id", "name", "technique", "platform", "negative", "verdict", "latency_seconds",
-          "matched_rule_ids", "error"]
+          "matched_rule_ids", "correlation", "exec_id", "error"]
 
 
 def write(run: dict, rows: list[dict], metrics: dict, path: Path) -> Path:

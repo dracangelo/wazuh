@@ -1,0 +1,18 @@
+attack_technique: T1070.006
+display_name: "Indicator Removal: Timestomp"
+atomic_tests:
+  - name: Backdate a temporary file's LastWriteTime
+    auto_generated_guid: c684983d-0f11-4323-a0b8-91a93ede9914
+    description: >-
+      Creates a uniquely named temporary file and sets its LastWriteTime two days in the past.
+      PowerShell script-block logging (4104) feeds rule 100875; the cleanup removes the file.
+    supported_platforms: [windows]
+    executor:
+      name: powershell
+      elevation_required: false
+      command: |
+        $f = Join-Path $env:TEMP "dv_atomic_ts_#{dv_exec_id}.txt"
+        Set-Content -Path $f -Value "dv"
+        (Get-Item -Path $f).LastWriteTime = (Get-Date).AddDays(-2)
+      cleanup_command: |
+        Remove-Item -Path (Join-Path $env:TEMP "dv_atomic_ts_#{dv_exec_id}.txt") -Force -ErrorAction SilentlyContinue

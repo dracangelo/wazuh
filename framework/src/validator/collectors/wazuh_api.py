@@ -31,6 +31,10 @@ class WazuhAPI:
             return r.json()
         raise RuntimeError("unreachable")
 
+    def manager_info(self) -> dict:
+        items = self._get("/manager/info").get("data", {}).get("affected_items", [])
+        return items[0] if items else {}
+
     def agents(self) -> list[dict]:
         return self._get("/agents", limit=500).get("data", {}).get("affected_items", [])
 

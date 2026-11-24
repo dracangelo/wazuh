@@ -31,4 +31,31 @@
     <mitre><id>T1562.001</id></mitre>
   </rule>
 
+  <rule id="100504" level="10">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/(iptables|ip6tables|nft|ufw)$</field>
+    <regex type="pcre2">a\d+="(-F|--flush|-X|--delete-chain|reset|disable)"</regex>
+    <description>Firewall flush or disabled via command line.</description>
+    <mitre><id>T1562.004</id></mitre>
+    <group>firewall_tamper,</group>
+  </rule>
+
+  <rule id="100505" level="9">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/setenforce$</field>
+    <regex type="pcre2">a\d+="(0|Permissive)"</regex>
+    <description>SELinux disabled via setenforce CLI command.</description>
+    <mitre><id>T1562.001</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
+  <rule id="100506" level="11">
+    <if_sid>100400</if_sid>
+    <field name="audit.exe" type="pcre2">/auditctl$</field>
+    <regex type="pcre2">a\d+="(-D|-e\s*0)"</regex>
+    <description>auditctl used to delete rules or disable audit daemon.</description>
+    <mitre><id>T1562.001</id></mitre>
+    <group>defense_evasion,</group>
+  </rule>
+
 </group>

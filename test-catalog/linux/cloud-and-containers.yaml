@@ -1,0 +1,106 @@
+tests:
+  - id: CLOUD-AWS-ROOT-LOGIN
+    name: AWS CloudTrail root console login without MFA
+    technique: T1078.004
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [cloud, aws]
+    simulation:
+      script: cloud/cloud_anomaly_sim.sh
+      interpreter: bash
+      args: [aws_root_login]
+    expected:
+      rule_ids: ["100610"]
+      timeout_seconds: 45
+
+  - id: CLOUD-AWS-STOP-TRAIL
+    name: AWS CloudTrail logging stopped or deleted
+    technique: T1562.001
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [cloud, aws, evasion]
+    simulation:
+      script: cloud/cloud_anomaly_sim.sh
+      interpreter: bash
+      args: [aws_stop_trail]
+    expected:
+      rule_ids: ["100611"]
+      timeout_seconds: 45
+
+  - id: CLOUD-AZURE-RISK-LOGIN
+    name: Azure Entra ID user sign-in flagged as high risk
+    technique: T1078.004
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [cloud, azure]
+    simulation:
+      script: cloud/cloud_anomaly_sim.sh
+      interpreter: bash
+      args: [azure_risky_login]
+    expected:
+      rule_ids: ["100612"]
+      timeout_seconds: 45
+
+  - id: CLOUD-GCP-IAM-ELEVATION
+    name: GCP Audit IAM policy modified with admin/owner role
+    technique: T1098
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [cloud, gcp]
+    simulation:
+      script: cloud/cloud_anomaly_sim.sh
+      interpreter: bash
+      args: [gcp_set_iam]
+    expected:
+      rule_ids: ["100613"]
+      timeout_seconds: 45
+
+  - id: CONT-DOCKER-SOCK-ACCESS
+    name: Container breakout attempt via host Docker socket
+    technique: T1611
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [container, docker]
+    simulation:
+      script: container/container_escape_sim.sh
+      interpreter: bash
+      args: [docker_sock]
+    expected:
+      rule_ids: ["100630"]
+      timeout_seconds: 45
+
+  - id: CONT-DOCKER-PRIV-SPAWN
+    name: Privileged container spawn or namespace sharing
+    technique: T1610
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [container, docker]
+    simulation:
+      script: container/container_escape_sim.sh
+      interpreter: bash
+      args: [priv_container]
+    expected:
+      rule_ids: ["100631"]
+      timeout_seconds: 45
+
+  - id: CONT-K8S-SECRET-ACCESS
+    name: Kubernetes serviceaccount token access
+    technique: T1552.007
+    platform: linux
+    source: custom
+    target: lab-linux-01
+    tags: [container, k8s]
+    simulation:
+      script: container/container_escape_sim.sh
+      interpreter: bash
+      args: [k8s_token]
+    expected:
+      rule_ids: ["100632"]
+      timeout_seconds: 45
+

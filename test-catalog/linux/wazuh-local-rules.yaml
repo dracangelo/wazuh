@@ -15,6 +15,7 @@ tests:
     args:
     - exec_tmp
   expected:
+    correlation: exec_id
     rule_ids:
     - '100401'
     timeout_seconds: 60
@@ -226,6 +227,7 @@ tests:
     args:
     - priv_group
   expected:
+    correlation: exec_id
     rule_ids:
     - '100301'
     timeout_seconds: 60
@@ -262,6 +264,7 @@ tests:
     args:
     - fim_sudoers
   expected:
+    correlation: exec_id
     rule_ids:
     - '100311'
     timeout_seconds: 120
@@ -298,6 +301,7 @@ tests:
     args:
     - fim_cron
   expected:
+    correlation: exec_id
     rule_ids:
     - '100314'
     timeout_seconds: 120
@@ -316,6 +320,7 @@ tests:
     args:
     - fim_systemd
   expected:
+    correlation: exec_id
     rule_ids:
     - '100315'
     timeout_seconds: 120
@@ -475,3 +480,142 @@ tests:
     rule_ids:
     - '100413'
     timeout_seconds: 60
+- id: LIN-R100414
+  name: LD_PRELOAD on an executed command
+  technique: T1574.006
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - ld_preload
+  expected:
+    rule_ids:
+    - '100414'
+    timeout_seconds: 60
+- id: LIN-R100415
+  name: ssh dynamic port forwarding
+  technique: T1572
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    allow_nonzero: true
+    args:
+    - ssh_tunnel
+  expected:
+    rule_ids:
+    - '100415'
+    timeout_seconds: 60
+- id: LIN-R100416
+  name: symbolic link to /etc/shadow
+  technique: T1003.008
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - shadow_symlink
+  expected:
+    rule_ids:
+    - '100416'
+    timeout_seconds: 60
+- id: LIN-R100417
+  name: sudo privilege enumeration
+  technique: T1548.003
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    allow_nonzero: true
+    args:
+    - sudo_list
+  expected:
+    rule_ids:
+    - '100417'
+    timeout_seconds: 60
+- id: LIN-R100427
+  name: Scripting runtime inline reverse shell execution
+  technique: T1059
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - script_reverse_shell
+  expected:
+    rule_ids:
+    - '100427'
+    timeout_seconds: 60
+- id: LIN-R100428
+  name: Download utility piped directly to shell
+  technique: T1059.004
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - download_pipe_shell
+  expected:
+    rule_ids:
+    - '100428'
+    timeout_seconds: 60
+- id: LIN-R100504
+  name: Firewall configuration flushed or modified
+  technique: T1562.004
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - firewall_flush
+  expected:
+    rule_ids:
+    - '100504'
+    timeout_seconds: 60
+- id: LIN-R100506
+  name: Audit configuration tampering via auditctl
+  technique: T1562.001
+  platform: linux
+  source: custom
+  target: lab-linux-01
+  tags:
+  - rules
+  simulation:
+    script: rules-lab/scenarios.sh
+    interpreter: bash
+    args:
+    - auditctl_tamper
+  expected:
+    rule_ids:
+    - '100506'
+    timeout_seconds: 60
+
